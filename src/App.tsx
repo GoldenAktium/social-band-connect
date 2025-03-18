@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import FindBands from "./pages/FindBands";
 import NotFound from "./pages/NotFound";
 import UserTypeSelection from "./components/UserTypeSelection";
 import MusicianOnboarding from "./components/MusicianOnboarding";
@@ -24,6 +25,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/find-bands" element={<FindBands />} />
           <Route path="/signup" element={<div className="min-h-screen flex items-center justify-center p-4"><SignupForm /></div>} />
           <Route path="/login" element={<div className="min-h-screen flex items-center justify-center p-4"><LoginForm /></div>} />
           <Route path="/user-type" element={<div className="min-h-screen flex items-center justify-center p-4"><UserTypeSelection /></div>} />

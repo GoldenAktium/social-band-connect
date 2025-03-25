@@ -78,6 +78,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error) {
+        // Special handling for unconfirmed email errors
+        if (error.message.includes('Email not confirmed')) {
+          const { error: resendError } = await supabase.auth.resend({
+            type: 'signup',
+            email,
+          });
+          
+          if (resendError) {
+            throw resendError;
+          }
+          
+          throw new Error('Please check your email for a confirmation link. We have resent the confirmation email.');
+        }
         throw error;
       }
 
@@ -113,6 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: {
             name,
           },
+          emailRedirectTo: window.location.origin + '/dashboard',
         },
       });
 
@@ -121,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data.user) {
+        // Set the user immediately after signup
         setUser({
           id: data.user.id,
           email: data.user.email || '',
@@ -132,6 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           description: 'Your account has been successfully created.',
         });
         
+        // Navigate directly to user type selection
         navigate('/user-type');
       }
     } catch (error: any) {

@@ -93,14 +93,15 @@ export const BandOnboarding = () => {
       }
 
       // Here you would normally save the band data to your database
-      // For this example, we'll just simulate success and navigate to the dashboard
+      // For this example, we'll just simulate success and navigate to the band profile page
       
       toast({
         title: 'Band created!',
         description: `${bandName} has been created successfully`,
       });
       
-      navigate('/dashboard');
+      // Navigate to the new band profile page instead of dashboard
+      navigate('/band/1'); // In a real app, this would be the actual band ID
     } catch (error) {
       console.error('Error creating band:', error);
       toast({

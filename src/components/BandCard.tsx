@@ -1,9 +1,10 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui-custom/Card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui-custom/Button';
-import { MapPin, Music, Users } from 'lucide-react';
+import { MapPin, Music, Calendar, Users } from 'lucide-react';
 import { genres } from '@/components/onboarding/BandDetailsStep';
 
 interface Band {
@@ -22,6 +23,8 @@ interface BandCardProps {
 }
 
 const BandCard = ({ band }: BandCardProps) => {
+  const navigate = useNavigate();
+  
   // Function to get genre name from ID
   const getGenreName = (genreId: string) => {
     const genre = genres.find(g => g.id === genreId);
@@ -31,6 +34,10 @@ const BandCard = ({ band }: BandCardProps) => {
   // Format skill level with first letter capitalized
   const formatSkillLevel = (level: string) => {
     return level.charAt(0).toUpperCase() + level.slice(1);
+  };
+  
+  const handleViewProfile = () => {
+    navigate(`/band/${band.id}`);
   };
 
   return (
@@ -45,36 +52,32 @@ const BandCard = ({ band }: BandCardProps) => {
       <CardContent className="flex-grow">
         <div className="mb-4">
           <div className="flex flex-wrap gap-1 mb-3">
-            {band.genre.map(genreId => (
-              <Badge key={genreId} variant="secondary" className="bg-music-100 text-music-800">
-                {getGenreName(genreId)}
-              </Badge>
-            ))}
             <Badge variant="outline" className="bg-gray-100">
               {formatSkillLevel(band.skillLevel)}
             </Badge>
+            <Badge variant="outline" className="bg-gray-100 flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              {band.members} members
+            </Badge>
           </div>
-          <p className="text-sm text-muted-foreground">{band.description}</p>
-        </div>
-        <div className="mt-4">
-          <h4 className="text-sm font-medium mb-2">Looking for:</h4>
-          <div className="flex flex-wrap gap-1">
-            {band.lookingFor.map(role => (
-              <Badge key={role} variant="outline">
-                {role}
+          <div className="flex flex-wrap gap-1 mb-3">
+            {band.genre.map(genreId => (
+              <Badge key={genreId} variant="outline" className="border-music-200">
+                {getGenreName(genreId)}
               </Badge>
             ))}
           </div>
+          <p className="text-sm text-muted-foreground">{band.description}</p>
         </div>
       </CardContent>
       <CardFooter className="border-t pt-4">
         <div className="flex justify-between items-center w-full">
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Users className="h-4 w-4" />
-            <span>{band.members} members</span>
+            <Music className="h-4 w-4" />
+            <span>Looking for: {band.lookingFor.join(', ')}</span>
           </div>
-          <Button size="sm" variant="music">
-            Contact
+          <Button size="sm" variant="music" onClick={handleViewProfile}>
+            View Band
           </Button>
         </div>
       </CardFooter>

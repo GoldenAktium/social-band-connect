@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Filter, ChevronDown, MapPin, Star, User, Music } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,13 +15,10 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -40,6 +38,7 @@ const musicians = [
     genres: ['Rock', 'Blues', 'Jazz'],
     availability: 'Weekends',
     image: 'https://randomuser.me/api/portraits/men/32.jpg',
+    online: true
   },
   {
     id: 2,
@@ -53,6 +52,7 @@ const musicians = [
     genres: ['Pop', 'R&B', 'Soul'],
     availability: 'Evenings',
     image: 'https://randomuser.me/api/portraits/women/44.jpg',
+    online: false
   },
   {
     id: 3,
@@ -109,9 +109,11 @@ const musicians = [
 ];
 
 const FindMusicians = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [distanceFilter, setDistanceFilter] = useState([10]);
   const [showAvailable, setShowAvailable] = useState(false);
+  const [showOnlineOnly, setShowOnlineOnly] = useState(false);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
 
@@ -137,7 +139,10 @@ const FindMusicians = () => {
     const matchesInstrument = selectedInstruments.length === 0 || 
       selectedInstruments.includes(musician.instrument);
     
-    return matchesSearch && matchesDistance && matchesGenre && matchesInstrument;
+    // Online filter
+    const matchesOnline = !showOnlineOnly || musician.online;
+    
+    return matchesSearch && matchesDistance && matchesGenre && matchesInstrument && matchesOnline;
   });
 
   const toggleGenre = (genre: string) => {
@@ -154,6 +159,10 @@ const FindMusicians = () => {
         ? prev.filter(i => i !== instrument) 
         : [...prev, instrument]
     );
+  };
+
+  const handleViewProfile = (musicianId: number) => {
+    navigate(`/musician/${musicianId}`);
   };
 
   return (
@@ -312,6 +321,16 @@ const FindMusicians = () => {
                 />
                 <Label htmlFor="available-only">Available now</Label>
               </div>
+              
+              {/* Online Filter - New */}
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="online-only"
+                  checked={showOnlineOnly}
+                  onCheckedChange={setShowOnlineOnly}
+                />
+                <Label htmlFor="online-only">Online users only</Label>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -356,10 +375,15 @@ const FindMusicians = () => {
                 <Card key={musician.id} className="overflow-hidden">
                   <div className="flex flex-col sm:flex-row">
                     <div className="sm:w-1/3 p-4 flex items-center justify-center bg-muted">
-                      <Avatar className="h-24 w-24">
-                        <AvatarImage src={musician.image} alt={musician.name} />
-                        <AvatarFallback>{musician.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Avatar className="h-24 w-24">
+                          <AvatarImage src={musician.image} alt={musician.name} />
+                          <AvatarFallback>{musician.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        {musician.online && (
+                          <span className="absolute bottom-0 right-0 h-4 w-4 bg-green-500 rounded-full border-2 border-white"></span>
+                        )}
+                      </div>
                     </div>
                     <div className="sm:w-2/3 p-4">
                       <div className="flex justify-between items-start">
@@ -389,7 +413,12 @@ const FindMusicians = () => {
                       
                       <div className="mt-4 flex justify-between items-center">
                         <span className="text-sm">{musician.experience}</span>
-                        <Button size="sm">View Profile</Button>
+                        <Button 
+                          size="sm"
+                          onClick={() => handleViewProfile(musician.id)}
+                        >
+                          View Profile
+                        </Button>
                       </div>
                     </div>
                   </div>

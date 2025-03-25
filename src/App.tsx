@@ -9,6 +9,8 @@ import Dashboard from "./pages/Dashboard";
 import FindBands from "./pages/FindBands";
 import FindMusicians from "./pages/FindMusicians";
 import FindMusic from "./pages/FindMusic";
+import MusicianProfile from "./pages/MusicianProfile";
+import BandProfile from "./pages/BandProfile";
 import NotFound from "./pages/NotFound";
 import UserTypeSelection from "./components/UserTypeSelection";
 import MusicianOnboarding from "./components/MusicianOnboarding";
@@ -40,6 +42,10 @@ const App = () => (
             <Route path="/find-bands" element={<FindBands />} />
             <Route path="/find-musicians" element={<FindMusicians />} />
             <Route path="/find-music" element={<FindMusic />} />
+            
+            {/* New profile routes */}
+            <Route path="/musician/:id" element={<MusicianProfile />} />
+            <Route path="/band/:id" element={<BandProfile />} />
             
             <Route path="/upload-music" element={
               <AuthRoute>

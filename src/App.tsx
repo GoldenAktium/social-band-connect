@@ -8,12 +8,16 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import FindBands from "./pages/FindBands";
 import FindMusicians from "./pages/FindMusicians";
+import FindMusic from "./pages/FindMusic";
 import NotFound from "./pages/NotFound";
 import UserTypeSelection from "./components/UserTypeSelection";
 import MusicianOnboarding from "./components/MusicianOnboarding";
 import BandOnboarding from "./components/BandOnboarding";
 import LoginForm from "./components/LoginForm";
 import SignupForm from "./components/SignupForm";
+import MusicUpload from "./components/MusicUpload";
+import { AuthProvider } from "./context/AuthContext";
+import AuthRoute from "./components/AuthRoute";
 
 const queryClient = new QueryClient();
 
@@ -23,19 +27,58 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/find-bands" element={<FindBands />} />
-          <Route path="/find-musicians" element={<FindMusicians />} />
-          <Route path="/signup" element={<div className="min-h-screen flex items-center justify-center p-4"><SignupForm /></div>} />
-          <Route path="/login" element={<div className="min-h-screen flex items-center justify-center p-4"><LoginForm /></div>} />
-          <Route path="/user-type" element={<div className="min-h-screen flex items-center justify-center p-4"><UserTypeSelection /></div>} />
-          <Route path="/musician-onboarding" element={<div className="min-h-screen flex items-center justify-center p-4"><MusicianOnboarding /></div>} />
-          <Route path="/band-onboarding" element={<div className="min-h-screen flex items-center justify-center p-4"><BandOnboarding /></div>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            
+            <Route path="/dashboard" element={
+              <AuthRoute>
+                <Dashboard />
+              </AuthRoute>
+            } />
+            
+            <Route path="/find-bands" element={<FindBands />} />
+            <Route path="/find-musicians" element={<FindMusicians />} />
+            <Route path="/find-music" element={<FindMusic />} />
+            
+            <Route path="/upload-music" element={
+              <AuthRoute>
+                <div className="min-h-screen flex items-center justify-center p-4">
+                  <MusicUpload />
+                </div>
+              </AuthRoute>
+            } />
+            
+            <Route path="/signup" element={<div className="min-h-screen flex items-center justify-center p-4"><SignupForm /></div>} />
+            <Route path="/login" element={<div className="min-h-screen flex items-center justify-center p-4"><LoginForm /></div>} />
+            <Route path="/user-type" element={
+              <AuthRoute>
+                <div className="min-h-screen flex items-center justify-center p-4">
+                  <UserTypeSelection />
+                </div>
+              </AuthRoute>
+            } />
+            
+            <Route path="/musician-onboarding" element={
+              <AuthRoute>
+                <div className="min-h-screen flex items-center justify-center p-4">
+                  <MusicianOnboarding />
+                </div>
+              </AuthRoute>
+            } />
+            
+            <Route path="/band-onboarding" element={
+              <AuthRoute>
+                <div className="min-h-screen flex items-center justify-center p-4">
+                  <BandOnboarding />
+                </div>
+              </AuthRoute>
+            } />
+            
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

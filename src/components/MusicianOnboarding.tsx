@@ -1,173 +1,193 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Guitar, Mic, Users, Music, ArrowRight, CheckCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui-custom/Card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui-custom/Card';
 import { AnimatedContainer } from './ui-custom/AnimatedContainer';
 import Button from './ui-custom/Button';
-import { cn } from '@/lib/utils';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useToast } from '@/hooks/use-toast';
+import { Label } from './ui/label';
+import DateSelector from './DateSelector';
+import { useToast } from './ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-const instruments = [
-  { id: 'guitar', name: 'Guitar', icon: Guitar },
-  { id: 'vocals', name: 'Vocals', icon: Mic },
-  { id: 'drums', name: 'Drums', icon: Users },
-  { id: 'bass', name: 'Bass', icon: Music },
-  { id: 'keyboard', name: 'Keyboard', icon: Music },
-  { id: 'saxophone', name: 'Saxophone', icon: Music },
-  { id: 'trumpet', name: 'Trumpet', icon: Music },
-  { id: 'violin', name: 'Violin', icon: Music },
-  { id: 'cello', name: 'Cello', icon: Music },
-  { id: 'flute', name: 'Flute', icon: Music },
-  { id: 'clarinet', name: 'Clarinet', icon: Music },
-  { id: 'trombone', name: 'Trombone', icon: Music },
-  { id: 'other', name: 'Other', icon: Music },
+type InstrumentOption = {
+  value: string;
+  label: string;
+  icon?: React.ReactNode;
+};
+
+const instrumentOptions: InstrumentOption[] = [
+  { value: 'guitar', label: 'Guitar' },
+  { value: 'bass', label: 'Bass Guitar' },
+  { value: 'drums', label: 'Drums' },
+  { value: 'vocals', label: 'Vocals' },
+  { value: 'keyboard', label: 'Keyboard' },
+  { value: 'piano', label: 'Piano' },
+  { value: 'saxophone', label: 'Saxophone' },
+  { value: 'trumpet', label: 'Trumpet' },
+  { value: 'violin', label: 'Violin' },
+  { value: 'cello', label: 'Cello' },
+  { value: 'flute', label: 'Flute' },
+  { value: 'clarinet', label: 'Clarinet' },
+  { value: 'trombone', label: 'Trombone' },
+  { value: 'ukulele', label: 'Ukulele' },
+  { value: 'banjo', label: 'Banjo' },
+  { value: 'harmonica', label: 'Harmonica' },
+  { value: 'other', label: 'Other' },
 ];
 
 export const MusicianOnboarding = () => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
+  const [step, setStep] = useState(1);
+  const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleInstrumentSelect = (instrumentId: string) => {
-    setSelectedInstruments(prev => 
-      prev.includes(instrumentId)
-        ? prev.filter(id => id !== instrumentId)
-        : [...prev, instrumentId]
-    );
+  const handleDateChange = (date: Date | null) => {
+    setBirthDate(date);
+  };
+
+  const toggleInstrument = (value: string) => {
+    setSelectedInstruments(prev => {
+      if (prev.includes(value)) {
+        return prev.filter(i => i !== value);
+      } else {
+        return [...prev, value];
+      }
+    });
   };
 
   const handleNext = () => {
-    if (currentStep === 1) {
-      if (!birthDate) {
+    if (step === 1 && !birthDate) {
+      toast({
+        title: 'Birth date required',
+        description: 'Please select your birth date before continuing',
+        variant: 'destructive'
+      });
+      return;
+    }
+    setStep(prev => prev + 1);
+  };
+
+  const handleBack = () => {
+    setStep(prev => prev - 1);
+  };
+
+  const handleSubmit = async () => {
+    if (selectedInstruments.length === 0) {
+      toast({
+        title: 'Instrument selection required',
+        description: 'Please select at least one instrument',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
         toast({
-          title: "Please select your birth date",
-          variant: "destructive",
+          title: 'Authentication error',
+          description: 'Please log in to complete your profile',
+          variant: 'destructive'
         });
+        navigate('/login');
         return;
       }
-      setCurrentStep(2);
-    } else {
-      if (selectedInstruments.length === 0) {
-        toast({
-          title: "Please select at least one instrument",
-          variant: "destructive",
-        });
-        return;
-      }
-      // Save data and redirect
-      const userData = {
-        type: 'musician',
-        birthDate,
-        instruments: selectedInstruments
-      };
-      localStorage.setItem('socialBandUserProfile', JSON.stringify(userData));
+
+      // Here you would normally save the user data to your database
+      // For this example, we'll just simulate success and navigate to the dashboard
       
       toast({
-        title: "Profile created successfully!",
-        description: "Redirecting to your dashboard",
+        title: 'Profile complete!',
+        description: 'Your musician profile has been created successfully',
       });
       
-      // Redirect to dashboard after short delay
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1500);
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast({
+        title: 'Something went wrong',
+        description: 'Failed to save your profile. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <AnimatedContainer animation="fade-in" className="w-full max-w-3xl mx-auto">
+    <AnimatedContainer animation="scale-in" className="w-full max-w-md">
       <Card className="w-full">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-display">
-            {currentStep === 1 ? "Tell us about yourself" : "What instruments do you play?"}
-          </CardTitle>
+          <CardTitle className="text-2xl font-display">Set Up Your Musician Profile</CardTitle>
           <CardDescription className="text-lg">
-            {currentStep === 1 
-              ? "Let's set up your musician profile" 
-              : "Select all the instruments you play"}
+            {step === 1 
+              ? "When were you born?" 
+              : "What instruments do you play?"}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-8">
-          {currentStep === 1 ? (
-            <div className="flex flex-col items-center space-y-4">
-              <h3 className="text-xl font-medium">When were you born?</h3>
+        <CardContent className="space-y-6">
+          {step === 1 ? (
+            <div className="space-y-4">
+              <Label htmlFor="birthdate">Birth Date</Label>
+              <DateSelector 
+                onChange={handleDateChange} 
+                className="mt-2"
+              />
               
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[280px] justify-start text-left font-normal",
-                      !birthDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {birthDate ? format(birthDate, "PPP") : <span>Pick your birth date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={birthDate}
-                    onSelect={setBirthDate}
-                    disabled={(date) => date > new Date()}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-              
-              <p className="text-muted-foreground text-center max-w-md mt-4">
-                All ages are welcome on SocialBand! Note that some features may have age restrictions.
-              </p>
+              <div className="pt-4">
+                <Button 
+                  variant="music" 
+                  className="w-full" 
+                  onClick={handleNext}
+                >
+                  Continue
+                </Button>
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {instruments.map((instrument) => {
-                const Icon = instrument.icon;
-                const isSelected = selectedInstruments.includes(instrument.id);
-                
-                return (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-2">
+                {instrumentOptions.map((instrument) => (
                   <button
-                    key={instrument.id}
-                    onClick={() => handleInstrumentSelect(instrument.id)}
-                    className={cn(
-                      "flex items-center p-3 rounded-lg border-2 transition-all",
-                      isSelected 
-                        ? "border-music-600 bg-music-50/50" 
-                        : "border-border hover:border-music-300"
-                    )}
+                    key={instrument.value}
+                    type="button"
+                    onClick={() => toggleInstrument(instrument.value)}
+                    className={`
+                      flex items-center p-3 rounded-lg border-2 transition-colors
+                      ${selectedInstruments.includes(instrument.value)
+                        ? 'border-music-600 bg-music-50/50'
+                        : 'border-border hover:border-music-300'}
+                    `}
                   >
-                    <div className={cn(
-                      "p-2 rounded-full mr-3",
-                      isSelected ? "bg-music-100 text-music-700" : "bg-muted text-muted-foreground"
-                    )}>
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <span className="font-medium">{instrument.name}</span>
+                    <span>{instrument.label}</span>
                   </button>
-                );
-              })}
+                ))}
+              </div>
+              
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  variant="outline" 
+                  className="flex-1" 
+                  onClick={handleBack}
+                >
+                  Back
+                </Button>
+                <Button 
+                  variant="music" 
+                  className="flex-1" 
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Saving...' : 'Complete Profile'}
+                </Button>
+              </div>
             </div>
           )}
-          
-          <div className="flex justify-center pt-4">
-            <Button 
-              variant="music" 
-              size="lg"
-              onClick={handleNext}
-              icon={currentStep === 2 ? <CheckCircle /> : <ArrowRight />}
-              iconPosition="right"
-            >
-              {currentStep === 2 ? 'Complete Setup' : 'Continue'}
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </AnimatedContainer>

@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Users, 
   User, 
@@ -13,84 +13,69 @@ import {
   Calendar,
   Guitar,
   Mic,
-  Star
+  Star,
+  LogOut
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui-custom/Card';
 import Button from '@/components/ui-custom/Button';
 import { AnimatedContainer } from '@/components/ui-custom/AnimatedContainer';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import HomeButton from '@/components/HomeButton';
 
 export const Dashboard = () => {
   const [selectedTab, setSelectedTab] = useState('dashboard');
+  const [recommendedMusicians, setRecommendedMusicians] = useState<any[]>([]);
+  const [isLoadingMusicians, setIsLoadingMusicians] = useState(true);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
-  const recommendedMusicians = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      instrument: 'Vocalist',
-      location: 'New York, NY',
-      skillLevel: 'Advanced',
-      rating: 4.8,
-      image: '/placeholder.svg',
-      genres: ['Jazz', 'Soul', 'R&B'],
-    },
-    {
-      id: 2,
-      name: 'Alex Chen',
-      instrument: 'Guitarist',
-      location: 'Los Angeles, CA',
-      skillLevel: 'Intermediate',
-      rating: 4.5,
-      image: '/placeholder.svg',
-      genres: ['Rock', 'Alternative', 'Blues'],
-    },
-    {
-      id: 3,
-      name: 'Mark Davis',
-      instrument: 'Drummer',
-      location: 'Chicago, IL',
-      skillLevel: 'Professional',
-      rating: 4.9,
-      image: '/placeholder.svg',
-      genres: ['Metal', 'Rock', 'Punk'],
-    },
-  ];
+  // Load recommended musicians
+  useEffect(() => {
+    const fetchRecommendedMusicians = async () => {
+      setIsLoadingMusicians(true);
+      try {
+        // In a real app, you would fetch actual user profiles from your database
+        // For now, we'll just use our dummy data
+        // This would be replaced with a real API call
+        
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Use our existing dummy data since we don't have real profiles yet
+        setRecommendedMusicians([]);
+        
+      } catch (error) {
+        console.error('Error fetching recommended musicians:', error);
+        setRecommendedMusicians([]);
+      } finally {
+        setIsLoadingMusicians(false);
+      }
+    };
 
-  const upcomingEvents = [
-    {
-      id: 1,
-      title: 'Virtual Jam Session',
-      date: 'Sep 15, 2023',
-      participants: 8,
-    },
-    {
-      id: 2,
-      title: 'Local Band Meetup',
-      date: 'Sep 22, 2023',
-      participants: 12,
-    },
-  ];
+    fetchRecommendedMusicians();
+  }, []);
 
-  const notifications = [
-    {
-      id: 1,
-      type: 'message',
-      content: 'New message from Alex Chen',
-      time: '2 hours ago',
-    },
-    {
-      id: 2,
-      type: 'connection',
-      content: 'Sarah Johnson accepted your connection request',
-      time: '1 day ago',
-    },
-    {
-      id: 3,
-      type: 'event',
-      content: 'Upcoming event: Virtual Jam Session',
-      time: '2 days ago',
-    },
-  ];
+  const handleTabClick = (tab: string) => {
+    if (tab === 'find') {
+      navigate('/find-musicians');
+    } else if (tab === 'bands') {
+      navigate('/find-bands');
+    } else if (tab === 'messages') {
+      // For now, we'll just switch the tab without navigating
+      setSelectedTab('messages');
+    } else if (tab === 'settings') {
+      // For now, we'll just switch the tab without navigating
+      setSelectedTab('settings');
+    } else {
+      setSelectedTab(tab);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,7 +90,7 @@ export const Dashboard = () => {
         
         <div className="p-6 space-y-1">
           <button 
-            onClick={() => setSelectedTab('dashboard')}
+            onClick={() => handleTabClick('dashboard')}
             className={cn(
               "flex items-center w-full px-3 py-2 rounded-md transition-colors",
               selectedTab === 'dashboard' 
@@ -118,7 +103,7 @@ export const Dashboard = () => {
           </button>
           
           <button 
-            onClick={() => setSelectedTab('find')}
+            onClick={() => handleTabClick('find')}
             className={cn(
               "flex items-center w-full px-3 py-2 rounded-md transition-colors",
               selectedTab === 'find' 
@@ -131,7 +116,7 @@ export const Dashboard = () => {
           </button>
           
           <button 
-            onClick={() => setSelectedTab('bands')}
+            onClick={() => handleTabClick('bands')}
             className={cn(
               "flex items-center w-full px-3 py-2 rounded-md transition-colors",
               selectedTab === 'bands' 
@@ -144,7 +129,7 @@ export const Dashboard = () => {
           </button>
           
           <button 
-            onClick={() => setSelectedTab('messages')}
+            onClick={() => handleTabClick('messages')}
             className={cn(
               "flex items-center w-full px-3 py-2 rounded-md transition-colors",
               selectedTab === 'messages' 
@@ -157,7 +142,7 @@ export const Dashboard = () => {
           </button>
           
           <button 
-            onClick={() => setSelectedTab('settings')}
+            onClick={() => handleTabClick('settings')}
             className={cn(
               "flex items-center w-full px-3 py-2 rounded-md transition-colors",
               selectedTab === 'settings' 
@@ -167,6 +152,14 @@ export const Dashboard = () => {
           >
             <Settings className="h-5 w-5 mr-3" />
             Settings
+          </button>
+          
+          <button 
+            onClick={handleSignOut}
+            className="flex items-center w-full px-3 py-2 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground mt-4"
+          >
+            <LogOut className="h-5 w-5 mr-3" />
+            Sign Out
           </button>
         </div>
       </div>
@@ -182,10 +175,10 @@ export const Dashboard = () => {
           <button className="text-foreground">
             <Bell className="h-5 w-5" />
           </button>
-          <button className="text-foreground">
+          <button className="text-foreground" onClick={() => handleTabClick('messages')}>
             <MessageSquare className="h-5 w-5" />
           </button>
-          <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+          <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center" onClick={() => handleTabClick('dashboard')}>
             <User className="h-5 w-5" />
           </button>
         </div>
@@ -194,7 +187,7 @@ export const Dashboard = () => {
       {/* Mobile navigation */}
       <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/80 backdrop-blur-sm p-2 flex justify-around lg:hidden z-30">
         <button 
-          onClick={() => setSelectedTab('dashboard')}
+          onClick={() => handleTabClick('dashboard')}
           className={cn(
             "flex flex-col items-center p-2 rounded-md transition-colors",
             selectedTab === 'dashboard' 
@@ -207,7 +200,7 @@ export const Dashboard = () => {
         </button>
         
         <button 
-          onClick={() => setSelectedTab('find')}
+          onClick={() => handleTabClick('find')}
           className={cn(
             "flex flex-col items-center p-2 rounded-md transition-colors",
             selectedTab === 'find' 
@@ -220,7 +213,7 @@ export const Dashboard = () => {
         </button>
         
         <button 
-          onClick={() => setSelectedTab('bands')}
+          onClick={() => handleTabClick('bands')}
           className={cn(
             "flex flex-col items-center p-2 rounded-md transition-colors",
             selectedTab === 'bands' 
@@ -233,7 +226,7 @@ export const Dashboard = () => {
         </button>
         
         <button 
-          onClick={() => setSelectedTab('messages')}
+          onClick={() => handleTabClick('messages')}
           className={cn(
             "flex flex-col items-center p-2 rounded-md transition-colors",
             selectedTab === 'messages' 
@@ -246,7 +239,7 @@ export const Dashboard = () => {
         </button>
         
         <button 
-          onClick={() => setSelectedTab('settings')}
+          onClick={() => handleTabClick('settings')}
           className={cn(
             "flex flex-col items-center p-2 rounded-md transition-colors",
             selectedTab === 'settings' 
@@ -265,14 +258,18 @@ export const Dashboard = () => {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-2xl font-display font-bold">Dashboard</h1>
-              <p className="text-muted-foreground">Welcome back, John</p>
+              <p className="text-muted-foreground">Welcome back, {user?.name || 'Musician'}</p>
             </div>
             
             <div className="hidden lg:flex items-center space-x-4">
+              <HomeButton />
               <button className="p-2 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
                 <Bell className="h-5 w-5" />
               </button>
-              <button className="p-2 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+              <button
+                onClick={() => handleTabClick('messages')} 
+                className="p-2 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              >
                 <MessageSquare className="h-5 w-5" />
               </button>
               <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
@@ -299,7 +296,11 @@ export const Dashboard = () => {
                       <span className="font-medium text-foreground">60% Complete</span> - Add your influences, upload a video, and set availability
                     </p>
                   </div>
-                  <Button variant="music" className="shrink-0">
+                  <Button 
+                    variant="music" 
+                    className="shrink-0"
+                    onClick={() => handleTabClick('settings')}
+                  >
                     Complete Profile
                   </Button>
                 </CardContent>
@@ -322,7 +323,7 @@ export const Dashboard = () => {
                         </div>
                         <span>Profile Views</span>
                       </div>
-                      <span className="font-semibold">32</span>
+                      <span className="font-semibold">0</span>
                     </div>
                     
                     <div className="flex justify-between items-center bg-muted/50 p-3 rounded-lg">
@@ -332,7 +333,7 @@ export const Dashboard = () => {
                         </div>
                         <span>New Messages</span>
                       </div>
-                      <span className="font-semibold">5</span>
+                      <span className="font-semibold">0</span>
                     </div>
                     
                     <div className="flex justify-between items-center bg-muted/50 p-3 rounded-lg">
@@ -342,8 +343,18 @@ export const Dashboard = () => {
                         </div>
                         <span>Connection Requests</span>
                       </div>
-                      <span className="font-semibold">8</span>
+                      <span className="font-semibold">0</span>
                     </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => navigate('/find-music')}
+                    >
+                      <Music className="mr-2 h-4 w-4" />
+                      Browse Music
+                    </Button>
                   </CardContent>
                 </Card>
               </AnimatedContainer>
@@ -355,146 +366,85 @@ export const Dashboard = () => {
                       <CardTitle>Recommended Musicians</CardTitle>
                       <CardDescription>Based on your preferences and location</CardDescription>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate('/find-musicians')}
+                    >
                       View All
                     </Button>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {recommendedMusicians.map((musician) => (
-                        <div key={musician.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                          <div className="w-12 h-12 rounded-full overflow-hidden bg-muted flex-shrink-0">
-                            <img 
-                              src={musician.image} 
-                              alt={musician.name} 
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-medium truncate">{musician.name}</h4>
-                              <div className="flex items-center text-sm">
-                                <Star className="h-4 w-4 mr-1 text-yellow-500 fill-yellow-500" />
-                                <span>{musician.rating}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <span className="truncate">
-                                {musician.instrument} • {musician.skillLevel}
-                              </span>
-                            </div>
-                            <div className="flex items-center text-xs text-muted-foreground mt-1">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              <span className="truncate">{musician.location}</span>
-                            </div>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {musician.genres.map((genre, idx) => (
-                                <span 
-                                  key={idx}
-                                  className="px-2 py-0.5 text-xs bg-music-100 text-music-700 rounded-full"
-                                >
-                                  {genre}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                          <Button variant="outline" size="sm" className="flex-shrink-0">
-                            Connect
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedContainer>
-            </div>
-            
-            {/* Events and notifications */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <AnimatedContainer animation="slide-up" delay="0.3s">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Upcoming Events</CardTitle>
-                    <CardDescription>Connect with musicians in person</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {upcomingEvents.length === 0 ? (
-                      <div className="text-center py-6">
-                        <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                        <p className="text-muted-foreground">No upcoming events</p>
-                        <Button variant="outline" size="sm" className="mt-4">
-                          Browse Events
-                        </Button>
-                      </div>
-                    ) : (
+                    {isLoadingMusicians ? (
                       <div className="space-y-4">
-                        {upcomingEvents.map((event) => (
-                          <div key={event.id} className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <h4 className="font-medium">{event.title}</h4>
-                                <div className="flex items-center text-sm text-muted-foreground mt-1">
-                                  <Calendar className="h-4 w-4 mr-1" />
-                                  <span>{event.date}</span>
-                                </div>
-                                <div className="flex items-center text-sm text-muted-foreground mt-1">
-                                  <Users className="h-4 w-4 mr-1" />
-                                  <span>{event.participants} people attending</span>
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="flex items-center gap-4 p-3 rounded-lg animate-pulse">
+                            <div className="w-12 h-12 rounded-full bg-muted"></div>
+                            <div className="flex-1 space-y-2">
+                              <div className="h-4 bg-muted rounded w-1/3"></div>
+                              <div className="h-3 bg-muted rounded w-1/2"></div>
+                              <div className="h-3 bg-muted rounded w-1/4"></div>
+                            </div>
+                            <div className="h-8 bg-muted rounded w-20"></div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : recommendedMusicians.length > 0 ? (
+                      <div className="space-y-4">
+                        {recommendedMusicians.map((musician) => (
+                          <div key={musician.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                            <div className="w-12 h-12 rounded-full overflow-hidden bg-muted flex-shrink-0">
+                              <img 
+                                src={musician.image} 
+                                alt={musician.name} 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-medium truncate">{musician.name}</h4>
+                                <div className="flex items-center text-sm">
+                                  <Star className="h-4 w-4 mr-1 text-yellow-500 fill-yellow-500" />
+                                  <span>{musician.rating}</span>
                                 </div>
                               </div>
-                              <Button variant="outline" size="sm">
-                                RSVP
-                              </Button>
+                              <div className="flex items-center text-sm text-muted-foreground">
+                                <span className="truncate">
+                                  {musician.instrument} • {musician.skillLevel}
+                                </span>
+                              </div>
+                              <div className="flex items-center text-xs text-muted-foreground mt-1">
+                                <MapPin className="h-3 w-3 mr-1" />
+                                <span className="truncate">{musician.location}</span>
+                              </div>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {musician.genres.map((genre: string, idx: number) => (
+                                  <span 
+                                    key={idx}
+                                    className="px-2 py-0.5 text-xs bg-music-100 text-music-700 rounded-full"
+                                  >
+                                    {genre}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
+                            <Button variant="outline" size="sm" className="flex-shrink-0">
+                              Connect
+                            </Button>
                           </div>
                         ))}
-                        <Button variant="outline" size="sm" className="w-full">
-                          View All Events
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </AnimatedContainer>
-              
-              <AnimatedContainer animation="slide-up" delay="0.4s">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Recent Notifications</CardTitle>
-                    <CardDescription>Stay updated with your network</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {notifications.length === 0 ? (
-                      <div className="text-center py-6">
-                        <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                        <p className="text-muted-foreground">No new notifications</p>
                       </div>
                     ) : (
-                      <div className="space-y-3">
-                        {notifications.map((notification) => (
-                          <div key={notification.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                            <div className={cn(
-                              "p-2 rounded-full",
-                              notification.type === 'message' ? "bg-brand-100 text-brand-600" :
-                              notification.type === 'connection' ? "bg-music-100 text-music-600" :
-                              "bg-muted text-muted-foreground"
-                            )}>
-                              {notification.type === 'message' ? (
-                                <MessageSquare className="h-4 w-4" />
-                              ) : notification.type === 'connection' ? (
-                                <Users className="h-4 w-4" />
-                              ) : (
-                                <Calendar className="h-4 w-4" />
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-sm">{notification.content}</p>
-                              <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
-                            </div>
-                          </div>
-                        ))}
-                        <Button variant="outline" size="sm" className="w-full">
-                          View All Notifications
+                      <div className="flex flex-col items-center justify-center py-8">
+                        <Guitar className="h-12 w-12 text-muted-foreground mb-3" />
+                        <p className="text-center text-muted-foreground mb-4">
+                          No musicians found matching your preferences.
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate('/find-musicians')}
+                        >
+                          Browse All Musicians
                         </Button>
                       </div>
                     )}

@@ -1,81 +1,73 @@
 
 import { useState } from 'react';
-import { Guitar, Users } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui-custom/Card';
-import { AnimatedContainer } from './ui-custom/AnimatedContainer';
-import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { Guitar, Users } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui-custom/Card';
+import { AnimatedContainer } from './ui-custom/AnimatedContainer';
+import Button from './ui-custom/Button';
+import { cn } from '@/lib/utils';
 
-type UserType = 'musician' | 'band-creator';
+type UserType = 'musician' | 'band-creator' | null;
 
 export const UserTypeSelection = () => {
-  const [selectedType, setSelectedType] = useState<UserType | null>(null);
+  const [userType, setUserType] = useState<UserType>(null);
   const navigate = useNavigate();
 
-  const handleContinue = () => {
-    if (selectedType === 'musician') {
+  const handleSelection = (type: UserType) => {
+    setUserType(type);
+    
+    if (type === 'musician') {
       navigate('/musician-onboarding');
-    } else if (selectedType === 'band-creator') {
+    } else if (type === 'band-creator') {
       navigate('/band-onboarding');
     }
   };
 
   return (
-    <AnimatedContainer animation="scale-in" className="w-full max-w-3xl mx-auto">
+    <AnimatedContainer animation="scale-in" className="w-full max-w-2xl">
       <Card className="w-full">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-display">Welcome to SocialBand!</CardTitle>
-          <CardDescription className="text-lg">Tell us how you want to use the platform</CardDescription>
+          <CardDescription className="text-lg">
+            Tell us how you want to use the platform
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <button
-              onClick={() => setSelectedType('musician')}
-              className={cn(
-                "flex flex-col items-center p-8 rounded-xl border-2 transition-all hover:shadow-md space-y-4 h-full",
-                selectedType === 'musician' 
-                  ? "border-music-600 bg-music-50/50" 
-                  : "border-border hover:border-music-300"
-              )}
-            >
-              <div className="p-4 bg-music-100 rounded-full text-music-700">
-                <Guitar className="w-10 h-10" />
-              </div>
-              <h3 className="text-2xl font-display font-semibold">I'm a Musician</h3>
-              <p className="text-center text-muted-foreground">
-                Looking to join a band or collaborate with other musicians
-              </p>
-            </button>
-            
-            <button
-              onClick={() => setSelectedType('band-creator')}
-              className={cn(
-                "flex flex-col items-center p-8 rounded-xl border-2 transition-all hover:shadow-md space-y-4 h-full",
-                selectedType === 'band-creator' 
-                  ? "border-music-600 bg-music-50/50" 
-                  : "border-border hover:border-music-300"
-              )}
-            >
-              <div className="p-4 bg-music-100 rounded-full text-music-700">
-                <Users className="w-10 h-10" />
-              </div>
-              <h3 className="text-2xl font-display font-semibold">I'm Forming a Band</h3>
-              <p className="text-center text-muted-foreground">
-                Looking to create a new band and find musicians to join
-              </p>
-            </button>
-          </div>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+          <button
+            onClick={() => handleSelection('musician')}
+            className={cn(
+              "flex flex-col items-center p-8 rounded-xl border-2 transition-all hover:shadow-md space-y-4",
+              userType === 'musician' 
+                ? "border-music-600 bg-music-50/50" 
+                : "border-border hover:border-music-300"
+            )}
+          >
+            <div className="p-4 bg-music-100 rounded-full text-music-700">
+              <Guitar className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-display font-semibold">I'm a Musician</h3>
+            <p className="text-center text-muted-foreground">
+              Looking to join a band or collaborate with other musicians
+            </p>
+          </button>
           
-          {selectedType && (
-            <AnimatedContainer animation="fade-in" className="flex justify-center">
-              <button
-                onClick={handleContinue}
-                className="bg-music-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-music-700 transition-colors"
-              >
-                Continue as {selectedType === 'musician' ? 'Musician' : 'Band Creator'}
-              </button>
-            </AnimatedContainer>
-          )}
+          <button
+            onClick={() => handleSelection('band-creator')}
+            className={cn(
+              "flex flex-col items-center p-8 rounded-xl border-2 transition-all hover:shadow-md space-y-4",
+              userType === 'band-creator' 
+                ? "border-music-600 bg-music-50/50" 
+                : "border-border hover:border-music-300"
+            )}
+          >
+            <div className="p-4 bg-music-100 rounded-full text-music-700">
+              <Users className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-display font-semibold">I'm Forming a Band</h3>
+            <p className="text-center text-muted-foreground">
+              Looking to create a new band and find musicians to join
+            </p>
+          </button>
         </CardContent>
       </Card>
     </AnimatedContainer>

@@ -1,308 +1,414 @@
+import { useState } from 'react';
+import { Search, Filter, ChevronDown, MapPin, Star, User, Music } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
 
-import React, { useState, useEffect } from 'react';
-import { Filter, Search, MapPin, Guitar, Users } from 'lucide-react';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui-custom/Button";
-import MusicianCard from '@/components/MusicianCard';
-import { genres } from '@/components/onboarding/BandDetailsStep';
-import { instruments } from '@/components/onboarding/InstrumentSelection';
-
-// Mock data for musicians
-const MOCK_MUSICIANS = [
+const musicians = [
   {
-    id: '1',
+    id: 1,
     name: 'Alex Johnson',
-    instruments: ['guitar', 'vocals'],
-    genres: ['rock', 'indie'],
+    instrument: 'Guitar',
     location: 'New York, NY',
-    skillLevel: 'intermediate',
-    age: 28,
-    experience: '10',
-    bio: 'Rock guitarist with a passion for classic and alternative rock. Looking to join a band for regular gigs.'
+    distance: '2 miles away',
+    rating: 4.8,
+    reviews: 24,
+    experience: '8 years',
+    genres: ['Rock', 'Blues', 'Jazz'],
+    availability: 'Weekends',
+    image: 'https://randomuser.me/api/portraits/men/32.jpg',
   },
   {
-    id: '2',
-    name: 'Jamie Smith',
-    instruments: ['drums'],
-    genres: ['jazz', 'blues'],
-    location: 'Chicago, IL',
-    skillLevel: 'advanced',
-    age: 34,
-    experience: '15',
-    bio: 'Professional jazz drummer with extensive experience in live performances and studio recordings.'
+    id: 2,
+    name: 'Samantha Lee',
+    instrument: 'Vocals',
+    location: 'Brooklyn, NY',
+    distance: '4 miles away',
+    rating: 4.9,
+    reviews: 36,
+    experience: '10 years',
+    genres: ['Pop', 'R&B', 'Soul'],
+    availability: 'Evenings',
+    image: 'https://randomuser.me/api/portraits/women/44.jpg',
   },
   {
-    id: '3',
-    name: 'Taylor Wilson',
-    instruments: ['bass'],
-    genres: ['rock', 'metal'],
-    location: 'Austin, TX',
-    skillLevel: 'intermediate',
-    age: 25,
-    experience: '8',
-    bio: 'Bass player influenced by rock and metal. Looking for a serious band committed to writing original music.'
+    id: 3,
+    name: 'Marcus Wilson',
+    instrument: 'Drums',
+    location: 'Queens, NY',
+    distance: '6 miles away',
+    rating: 4.7,
+    reviews: 19,
+    experience: '5 years',
+    genres: ['Rock', 'Metal', 'Punk'],
+    availability: 'Full-time',
+    image: 'https://randomuser.me/api/portraits/men/22.jpg',
   },
   {
-    id: '4',
-    name: 'Jordan Lee',
-    instruments: ['keyboard'],
-    genres: ['electronic', 'pop'],
-    location: 'Los Angeles, CA',
-    skillLevel: 'advanced',
-    age: 30,
-    experience: '12',
-    bio: 'Keyboardist and producer specializing in electronic and pop music. Strong background in music theory and composition.'
+    id: 4,
+    name: 'Jasmine Chen',
+    instrument: 'Piano',
+    location: 'Manhattan, NY',
+    distance: '1 mile away',
+    rating: 4.6,
+    reviews: 15,
+    experience: '12 years',
+    genres: ['Classical', 'Jazz', 'Contemporary'],
+    availability: 'Weekdays',
+    image: 'https://randomuser.me/api/portraits/women/24.jpg',
   },
   {
-    id: '5',
-    name: 'Casey Brown',
-    instruments: ['vocals'],
-    genres: ['r&b', 'pop'],
-    location: 'Miami, FL',
-    skillLevel: 'intermediate',
-    age: 26,
-    experience: '7',
-    bio: 'Versatile vocalist with a soulful style. Experienced in both lead and backing vocals.'
+    id: 5,
+    name: 'David Rodriguez',
+    instrument: 'Bass',
+    location: 'Bronx, NY',
+    distance: '8 miles away',
+    rating: 4.5,
+    reviews: 11,
+    experience: '7 years',
+    genres: ['Funk', 'Jazz', 'Latin'],
+    availability: 'Weekends',
+    image: 'https://randomuser.me/api/portraits/men/42.jpg',
   },
   {
-    id: '6',
-    name: 'Morgan Harris',
-    instruments: ['guitar', 'bass'],
-    genres: ['folk', 'country'],
-    location: 'Nashville, TN',
-    skillLevel: 'beginner',
-    age: 22,
-    experience: '3',
-    bio: 'Multi-instrumentalist focused on folk and country music. Looking to gain more experience in a collaborative setting.'
+    id: 6,
+    name: 'Emma Thompson',
+    instrument: 'Violin',
+    location: 'Jersey City, NJ',
+    distance: '10 miles away',
+    rating: 4.9,
+    reviews: 28,
+    experience: '15 years',
+    genres: ['Classical', 'Folk', 'Contemporary'],
+    availability: 'Part-time',
+    image: 'https://randomuser.me/api/portraits/women/14.jpg',
   },
-  {
-    id: '7',
-    name: 'Riley Cooper',
-    instruments: ['drums', 'other'],
-    genres: ['hip-hop', 'r&b'],
-    location: 'Atlanta, GA',
-    skillLevel: 'intermediate',
-    age: 27,
-    experience: '9',
-    bio: 'Drummer and percussionist with expertise in hip-hop and R&B rhythms. Also produce beats and work with digital audio.'
-  },
-  {
-    id: '8',
-    name: 'Avery Martinez',
-    instruments: ['keyboard', 'vocals'],
-    genres: ['classical', 'jazz'],
-    location: 'Boston, MA',
-    skillLevel: 'advanced',
-    age: 35,
-    experience: '20',
-    bio: 'Classically trained pianist and vocalist with a jazz background. Experienced in composing and arranging.'
-  }
 ];
 
-// Locations and skill levels for filters
-const LOCATIONS = ['All Locations', 'New York, NY', 'Chicago, IL', 'Austin, TX', 'Los Angeles, CA', 'Boston, MA', 'Miami, FL', 'Nashville, TN', 'Atlanta, GA'];
-const SKILL_LEVELS = ['All Skill Levels', 'beginner', 'intermediate', 'advanced'];
-
 const FindMusicians = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [instrumentFilter, setInstrumentFilter] = useState('');
-  const [genreFilter, setGenreFilter] = useState('');
-  const [locationFilter, setLocationFilter] = useState('All Locations');
-  const [skillLevelFilter, setSkillLevelFilter] = useState('All Skill Levels');
-  const [musicians, setMusicians] = useState(MOCK_MUSICIANS);
-  const [filteredMusicians, setFilteredMusicians] = useState(MOCK_MUSICIANS);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [distanceFilter, setDistanceFilter] = useState([10]);
+  const [showAvailable, setShowAvailable] = useState(false);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
 
-  // Apply filters when they change
-  useEffect(() => {
-    let filtered = [...musicians];
+  const allGenres = ['Rock', 'Pop', 'Jazz', 'Blues', 'Classical', 'Electronic', 'Hip Hop', 'R&B', 'Folk', 'Country', 'Metal', 'Punk', 'Soul', 'Funk', 'Latin'];
+  const allInstruments = ['Guitar', 'Vocals', 'Drums', 'Piano', 'Bass', 'Violin', 'Saxophone', 'Trumpet', 'Flute', 'Cello', 'Keyboard', 'DJ'];
 
-    // Apply search query filter
-    if (searchQuery) {
-      filtered = filtered.filter(musician => 
-        musician.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        musician.bio.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
+  const filteredMusicians = musicians.filter((musician) => {
+    // Search term filter
+    const matchesSearch = searchTerm === '' || 
+      musician.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      musician.instrument.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      musician.genres.some(genre => genre.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Distance filter
+    const distanceValue = parseInt(musician.distance);
+    const matchesDistance = distanceValue <= distanceFilter[0];
+    
+    // Genre filter
+    const matchesGenre = selectedGenres.length === 0 || 
+      musician.genres.some(genre => selectedGenres.includes(genre));
+    
+    // Instrument filter
+    const matchesInstrument = selectedInstruments.length === 0 || 
+      selectedInstruments.includes(musician.instrument);
+    
+    return matchesSearch && matchesDistance && matchesGenre && matchesInstrument;
+  });
 
-    // Apply instrument filter
-    if (instrumentFilter && instrumentFilter !== 'All Instruments') {
-      filtered = filtered.filter(musician => 
-        musician.instruments.includes(instrumentFilter.toLowerCase())
-      );
-    }
+  const toggleGenre = (genre: string) => {
+    setSelectedGenres(prev => 
+      prev.includes(genre) 
+        ? prev.filter(g => g !== genre) 
+        : [...prev, genre]
+    );
+  };
 
-    // Apply genre filter
-    if (genreFilter && genreFilter !== 'All Genres') {
-      filtered = filtered.filter(musician => 
-        musician.genres.includes(genreFilter.toLowerCase())
-      );
-    }
-
-    // Apply location filter
-    if (locationFilter && locationFilter !== 'All Locations') {
-      filtered = filtered.filter(musician => 
-        musician.location === locationFilter
-      );
-    }
-
-    // Apply skill level filter
-    if (skillLevelFilter && skillLevelFilter !== 'All Skill Levels') {
-      filtered = filtered.filter(musician => 
-        musician.skillLevel === skillLevelFilter.toLowerCase()
-      );
-    }
-
-    setFilteredMusicians(filtered);
-  }, [searchQuery, instrumentFilter, genreFilter, locationFilter, skillLevelFilter, musicians]);
+  const toggleInstrument = (instrument: string) => {
+    setSelectedInstruments(prev => 
+      prev.includes(instrument) 
+        ? prev.filter(i => i !== instrument) 
+        : [...prev, instrument]
+    );
+  };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 flex items-center gap-2">
-        <Guitar className="text-music-600" />
-        Find Musicians
-      </h1>
-
-      {/* Search and Filters */}
-      <div className="mb-8 space-y-4">
-        <div className="relative">
-          <Input
-            placeholder="Search for musicians..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+    <div className="container mx-auto py-8 px-4">
+      <h1 className="text-3xl font-bold mb-8">Find Musicians</h1>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Filters Sidebar */}
+        <div className="lg:col-span-1 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center">
+                <Filter className="mr-2 h-5 w-5" />
+                Filters
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Distance Filter */}
+              <div className="space-y-3">
+                <h3 className="font-medium flex items-center">
+                  <MapPin className="mr-2 h-4 w-4" />
+                  Distance
+                </h3>
+                <div className="space-y-2">
+                  <Slider
+                    value={distanceFilter}
+                    min={1}
+                    max={50}
+                    step={1}
+                    onValueChange={setDistanceFilter}
+                  />
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>1 mile</span>
+                    <span>{distanceFilter[0]} miles</span>
+                    <span>50 miles</span>
+                  </div>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              {/* Instrument Filter */}
+              <div className="space-y-3">
+                <h3 className="font-medium flex items-center">
+                  <Music className="mr-2 h-4 w-4" />
+                  Instrument
+                </h3>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      {selectedInstruments.length === 0 
+                        ? "Select instruments" 
+                        : `${selectedInstruments.length} selected`}
+                      <ChevronDown className="h-4 w-4 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
+                    <DropdownMenuLabel>Instruments</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <div className="max-h-[300px] overflow-auto">
+                      {allInstruments.map((instrument) => (
+                        <DropdownMenuItem 
+                          key={instrument}
+                          onClick={() => toggleInstrument(instrument)}
+                          className="flex items-center gap-2"
+                        >
+                          <div className="w-4 h-4 border rounded-sm flex items-center justify-center">
+                            {selectedInstruments.includes(instrument) && (
+                              <div className="w-2 h-2 bg-primary rounded-sm" />
+                            )}
+                          </div>
+                          {instrument}
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                {selectedInstruments.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {selectedInstruments.map(instrument => (
+                      <Badge 
+                        key={instrument} 
+                        variant="secondary"
+                        className="cursor-pointer"
+                        onClick={() => toggleInstrument(instrument)}
+                      >
+                        {instrument} ×
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <Separator />
+              
+              {/* Genre Filter */}
+              <div className="space-y-3">
+                <h3 className="font-medium flex items-center">
+                  <Music className="mr-2 h-4 w-4" />
+                  Genre
+                </h3>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      {selectedGenres.length === 0 
+                        ? "Select genres" 
+                        : `${selectedGenres.length} selected`}
+                      <ChevronDown className="h-4 w-4 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
+                    <DropdownMenuLabel>Genres</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <div className="max-h-[300px] overflow-auto">
+                      {allGenres.map((genre) => (
+                        <DropdownMenuItem 
+                          key={genre}
+                          onClick={() => toggleGenre(genre)}
+                          className="flex items-center gap-2"
+                        >
+                          <div className="w-4 h-4 border rounded-sm flex items-center justify-center">
+                            {selectedGenres.includes(genre) && (
+                              <div className="w-2 h-2 bg-primary rounded-sm" />
+                            )}
+                          </div>
+                          {genre}
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                {selectedGenres.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {selectedGenres.map(genre => (
+                      <Badge 
+                        key={genre} 
+                        variant="secondary"
+                        className="cursor-pointer"
+                        onClick={() => toggleGenre(genre)}
+                      >
+                        {genre} ×
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <Separator />
+              
+              {/* Availability Filter */}
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="available-only"
+                  checked={showAvailable}
+                  onCheckedChange={setShowAvailable}
+                />
+                <Label htmlFor="available-only">Available now</Label>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Instrument Filter */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              <Guitar className="h-4 w-4" />
-              Instrument
-            </label>
-            <Select value={instrumentFilter} onValueChange={setInstrumentFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Instruments" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All Instruments">All Instruments</SelectItem>
-                {instruments.map((instrument) => (
-                  <SelectItem key={instrument.id} value={instrument.id}>
-                    {instrument.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        
+        {/* Main Content */}
+        <div className="lg:col-span-3 space-y-6">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, instrument, or genre..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-
-          {/* Genre Filter */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              <Music className="h-4 w-4" />
-              Genre
-            </label>
-            <Select value={genreFilter} onValueChange={setGenreFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Genres" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All Genres">All Genres</SelectItem>
-                {genres.map((genre) => (
-                  <SelectItem key={genre.id} value={genre.id}>
-                    {genre.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          
+          {/* Results */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">
+                {filteredMusicians.length} Musicians Found
+              </h2>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    Sort by: Relevance
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>Relevance</DropdownMenuItem>
+                  <DropdownMenuItem>Distance</DropdownMenuItem>
+                  <DropdownMenuItem>Rating (High to Low)</DropdownMenuItem>
+                  <DropdownMenuItem>Experience (Most to Least)</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredMusicians.map((musician) => (
+                <Card key={musician.id} className="overflow-hidden">
+                  <div className="flex flex-col sm:flex-row">
+                    <div className="sm:w-1/3 p-4 flex items-center justify-center bg-muted">
+                      <Avatar className="h-24 w-24">
+                        <AvatarImage src={musician.image} alt={musician.name} />
+                        <AvatarFallback>{musician.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <div className="sm:w-2/3 p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-bold text-lg">{musician.name}</h3>
+                          <p className="text-muted-foreground">{musician.instrument}</p>
+                        </div>
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                          <span className="font-medium">{musician.rating}</span>
+                          <span className="text-muted-foreground text-sm ml-1">({musician.reviews})</span>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-2 flex items-center text-sm text-muted-foreground">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        <span>{musician.distance}</span>
+                      </div>
+                      
+                      <div className="mt-3 flex flex-wrap gap-1">
+                        {musician.genres.map((genre) => (
+                          <Badge key={genre} variant="secondary" className="text-xs">
+                            {genre}
+                          </Badge>
+                        ))}
+                      </div>
+                      
+                      <div className="mt-4 flex justify-between items-center">
+                        <span className="text-sm">{musician.experience}</span>
+                        <Button size="sm">View Profile</Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+            
+            {filteredMusicians.length === 0 && (
+              <div className="text-center py-12">
+                <User className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-4 text-lg font-medium">No musicians found</h3>
+                <p className="text-muted-foreground">
+                  Try adjusting your filters or search terms
+                </p>
+              </div>
+            )}
           </div>
-
-          {/* Location Filter */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              <MapPin className="h-4 w-4" />
-              Location
-            </label>
-            <Select value={locationFilter} onValueChange={setLocationFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Locations" />
-              </SelectTrigger>
-              <SelectContent>
-                {LOCATIONS.map((location) => (
-                  <SelectItem key={location} value={location}>
-                    {location}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Skill Level Filter */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              <Filter className="h-4 w-4" />
-              Skill Level
-            </label>
-            <Select value={skillLevelFilter} onValueChange={setSkillLevelFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Skill Levels" />
-              </SelectTrigger>
-              <SelectContent>
-                {SKILL_LEVELS.map((level) => (
-                  <SelectItem key={level} value={level}>
-                    {level.charAt(0).toUpperCase() + level.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Filter Reset Button */}
-        <div className="flex justify-end">
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              setSearchQuery('');
-              setInstrumentFilter('');
-              setGenreFilter('');
-              setLocationFilter('All Locations');
-              setSkillLevelFilter('All Skill Levels');
-            }}
-          >
-            Reset Filters
-          </Button>
         </div>
       </div>
-
-      {/* Results Count */}
-      <p className="text-muted-foreground mb-4">
-        Found {filteredMusicians.length} musicians
-      </p>
-
-      {/* Grid of Musicians */}
-      {filteredMusicians.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredMusicians.map(musician => (
-            <MusicianCard key={musician.id} musician={musician} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium">No musicians found</h3>
-          <p className="text-muted-foreground">
-            Try adjusting your filters or search query
-          </p>
-        </div>
-      )}
     </div>
   );
 };

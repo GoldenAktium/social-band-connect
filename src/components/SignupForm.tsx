@@ -6,6 +6,7 @@ import { Input } from './ui/input';
 import Button from './ui-custom/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui-custom/Card';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const SignupForm = () => {
   const [name, setName] = useState('');
@@ -16,38 +17,73 @@ export const SignupForm = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Mock signup for demo purposes
-    setTimeout(() => {
-      // In a real app, you would send this data to your backend
-      localStorage.setItem('socialBandUser', JSON.stringify({ email, name }));
-      
+    try {
+      // Attempt to create a Supabase user
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      // Log the response for debugging
+      console.log("Supabase signup response:", data);
+
       toast({
         title: "Account created successfully",
         description: "Redirecting to complete your profile",
       });
       
-      navigate('/signup');
+      // Store basic user info
+      localStorage.setItem('socialBandUser', JSON.stringify({ 
+        email, 
+        name,
+        id: data.user?.id 
+      }));
+      
+      // Redirect to the user type selection page
+      navigate('/user-type');
+    } catch (error: any) {
+      console.error("Signup error:", error);
+      toast({
+        title: "Signup failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleGoogleSignup = () => {
+  const handleGoogleSignup = async () => {
     setIsLoading(true);
-    // In a real app, you would implement Google OAuth here
-    setTimeout(() => {
-      toast({
-        title: "Google signup simulation",
-        description: "In a real app, this would connect to Google OAuth",
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/user-type`
+        }
       });
-      // Mock successful signup
-      localStorage.setItem('socialBandUser', JSON.stringify({ email: 'google@example.com', name: 'Google User' }));
-      navigate('/signup');
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error("Google signup error:", error);
+      toast({
+        title: "Google signup failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

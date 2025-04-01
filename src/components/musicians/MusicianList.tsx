@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, MapPin, User, ChevronDown } from 'lucide-react';
+import { Star, MapPin, User, ChevronDown, MessageCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/components/ui/use-toast';
 
 interface Musician {
   id: number;
@@ -26,6 +27,7 @@ interface Musician {
   availability: string;
   image: string;
   online?: boolean;
+  hasAccount?: boolean;
 }
 
 interface MusicianListProps {
@@ -34,9 +36,26 @@ interface MusicianListProps {
 
 const MusicianList = ({ musicians }: MusicianListProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleViewProfile = (musicianId: number) => {
     navigate(`/musician/${musicianId}`);
+  };
+
+  const handleContactMusician = (musician: Musician) => {
+    if (musician.hasAccount && musician.online) {
+      // In a real implementation, this would open a chat with the musician
+      toast({
+        title: "Message sent",
+        description: `Your request to contact ${musician.name} has been sent.`,
+      });
+    } else {
+      toast({
+        title: "Cannot contact musician",
+        description: "This musician is currently offline or is a sample profile.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -93,6 +112,11 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
                   <div className="mt-2 flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-3 w-3 mr-1" />
                     <span>{musician.distance}</span>
+                    {musician.online && (
+                      <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 border-green-400">
+                        Online
+                      </Badge>
+                    )}
                   </div>
                   
                   <div className="mt-3 flex flex-wrap gap-1">
@@ -105,12 +129,24 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
                   
                   <div className="mt-4 flex justify-between items-center">
                     <span className="text-sm">{musician.experience}</span>
-                    <Button 
-                      size="sm"
-                      onClick={() => handleViewProfile(musician.id)}
-                    >
-                      View Profile
-                    </Button>
+                    <div className="flex gap-2">
+                      {musician.hasAccount && musician.online && (
+                        <Button 
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleContactMusician(musician)}
+                        >
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          Contact
+                        </Button>
+                      )}
+                      <Button 
+                        size="sm"
+                        onClick={() => handleViewProfile(musician.id)}
+                      >
+                        View Profile
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Filter, MapPin, Music, ChevronDown } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui-custom/Card';
@@ -92,16 +91,14 @@ export const BandOnboarding = () => {
         return;
       }
 
-      // Here you would normally save the band data to your database
-      // For this example, we'll just simulate success and navigate to the band profile page
+      const bandId = '1'; // In a real app, this would be the returned ID
       
       toast({
         title: 'Band created!',
         description: `${bandName} has been created successfully`,
       });
       
-      // Navigate to the new band profile page instead of dashboard
-      navigate('/band/1'); // In a real app, this would be the actual band ID
+      navigate(`/band/${bandId}`);
     } catch (error) {
       console.error('Error creating band:', error);
       toast({

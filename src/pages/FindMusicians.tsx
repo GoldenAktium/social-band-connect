@@ -1,10 +1,13 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SearchBar from '@/components/musicians/SearchBar';
 import FilterSidebar from '@/components/musicians/FilterSidebar';
 import MusicianList from '@/components/musicians/MusicianList';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
-const musicians = [
+// Sample musicians with some marked as having real accounts and being online
+const sampleMusicians = [
   {
     id: 1,
     name: 'Alex Johnson',
@@ -17,7 +20,8 @@ const musicians = [
     genres: ['Rock', 'Blues', 'Jazz'],
     availability: 'Weekends',
     image: 'https://randomuser.me/api/portraits/men/32.jpg',
-    online: true
+    online: true,
+    hasAccount: true
   },
   {
     id: 2,
@@ -31,7 +35,8 @@ const musicians = [
     genres: ['Pop', 'R&B', 'Soul'],
     availability: 'Evenings',
     image: 'https://randomuser.me/api/portraits/women/44.jpg',
-    online: false
+    online: false,
+    hasAccount: true
   },
   {
     id: 3,
@@ -45,6 +50,7 @@ const musicians = [
     genres: ['Rock', 'Metal', 'Punk'],
     availability: 'Full-time',
     image: 'https://randomuser.me/api/portraits/men/22.jpg',
+    hasAccount: false
   },
   {
     id: 4,
@@ -58,6 +64,7 @@ const musicians = [
     genres: ['Classical', 'Jazz', 'Contemporary'],
     availability: 'Weekdays',
     image: 'https://randomuser.me/api/portraits/women/24.jpg',
+    hasAccount: false
   },
   {
     id: 5,
@@ -71,6 +78,8 @@ const musicians = [
     genres: ['Funk', 'Jazz', 'Latin'],
     availability: 'Weekends',
     image: 'https://randomuser.me/api/portraits/men/42.jpg',
+    online: true,
+    hasAccount: true
   },
   {
     id: 6,
@@ -84,6 +93,7 @@ const musicians = [
     genres: ['Classical', 'Folk', 'Contemporary'],
     availability: 'Part-time',
     image: 'https://randomuser.me/api/portraits/women/14.jpg',
+    hasAccount: false
   },
 ];
 
@@ -97,6 +107,18 @@ const FindMusicians = () => {
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
+  const { user } = useAuth();
+
+  // In a real app, we would fetch online users from the database
+  // For now, we'll use our sample data
+  const [musicians, setMusicians] = useState(sampleMusicians);
+
+  // Simulate fetching online users
+  useEffect(() => {
+    // In a real implementation, we would connect to a realtime presence system
+    // For now, we'll just use our sample data
+    console.log("Current user:", user);
+  }, [user]);
 
   const toggleGenre = (genre: string) => {
     setSelectedGenres(prev => 
@@ -134,7 +156,7 @@ const FindMusicians = () => {
       selectedInstruments.includes(musician.instrument);
     
     // Online filter
-    const matchesOnline = !showOnlineOnly || musician.online;
+    const matchesOnline = !showOnlineOnly || (musician.online === true);
     
     return matchesSearch && matchesDistance && matchesGenre && matchesInstrument && matchesOnline;
   });

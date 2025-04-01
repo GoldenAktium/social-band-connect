@@ -29,12 +29,6 @@ export const Navbar = ({ transparent = false, className }: NavbarProps) => {
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  const navLinks = [
-    { name: 'Find Musicians', href: '/find-musicians' },
-    { name: 'Form a Band', href: '/form-band' },
-    { name: 'How It Works', href: '/how-it-works' },
-  ];
-
   return (
     <nav
       className={cn(
@@ -55,27 +49,14 @@ export const Navbar = ({ transparent = false, className }: NavbarProps) => {
           <span>SocialBand</span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-8">
-          <div className="flex items-center space-x-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.href}
-                className="text-foreground/80 hover:text-foreground font-medium text-sm transition-colors duration-200"
-              >
-                {link.name}
-              </Link>
-            ))}
-          </div>
-          <div className="flex items-center space-x-3">
-            <Button href="/login" variant="outline" size="sm">
-              Log In
-            </Button>
-            <Button href="/signup" variant="music" size="sm">
-              Sign Up
-            </Button>
-          </div>
+        {/* Desktop Navigation - Simplified to only authentication buttons */}
+        <div className="hidden md:flex items-center space-x-3">
+          <Button href="/login" variant="outline" size="sm">
+            Log In
+          </Button>
+          <Button href="/signup" variant="music" size="sm">
+            Sign Up
+          </Button>
         </div>
 
         {/* Mobile menu button */}
@@ -88,21 +69,11 @@ export const Navbar = ({ transparent = false, className }: NavbarProps) => {
         </button>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* Mobile Navigation - Simplified */}
       {isOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white dark:bg-black border-b border-border shadow-lg animate-slide-up">
           <div className="flex flex-col space-y-4 p-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.href}
-                className="text-foreground font-medium py-2"
-                onClick={() => setIsOpen(false)}
-              >
-                {link.name}
-              </Link>
-            ))}
-            <div className="flex flex-col space-y-3 pt-4 border-t border-border">
+            <div className="flex flex-col space-y-3 pt-4">
               <Button href="/login" variant="outline" fullWidth>
                 Log In
               </Button>

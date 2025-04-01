@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Guitar, Users } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui-custom/Card';
 import { AnimatedContainer } from './ui-custom/AnimatedContainer';
-import Button from './ui-custom/Button';
 import { cn } from '@/lib/utils';
 
 type UserType = 'musician' | 'band-creator' | null;

@@ -1,19 +1,33 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Guitar, Users } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui-custom/Card';
 import { AnimatedContainer } from './ui-custom/AnimatedContainer';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 
 type UserType = 'musician' | 'band-creator' | null;
 
 export const UserTypeSelection = () => {
   const [userType, setUserType] = useState<UserType>(null);
   const navigate = useNavigate();
+  const { user, setUserType: saveUserType } = useAuth();
+  
+  // Check if user already has a type stored
+  useEffect(() => {
+    if (user?.userType) {
+      // If user already selected a type before, set it as the current selection
+      setUserType(user.userType);
+    }
+  }, [user]);
 
   const handleSelection = (type: UserType) => {
+    if (!type) return;
+    
     setUserType(type);
+    // Save the user type in the auth context
+    saveUserType(type);
     
     if (type === 'musician') {
       navigate('/musician-onboarding');

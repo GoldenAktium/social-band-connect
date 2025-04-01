@@ -28,7 +28,7 @@ const AuthRoute = ({ children }: AuthRouteProps) => {
   }
 
   if (!user) {
-    // Redirect to login page if not authenticated
+    // Save the current location to redirect back after authentication
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 

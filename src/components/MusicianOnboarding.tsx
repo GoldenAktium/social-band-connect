@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui-custom/Card';
 import { AnimatedContainer } from './ui-custom/AnimatedContainer';
@@ -8,6 +7,7 @@ import { Label } from './ui/label';
 import DateSelector from './DateSelector';
 import { useToast } from './ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
 type InstrumentOption = {
   value: string;
@@ -42,6 +42,18 @@ export const MusicianOnboarding = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to continue with onboarding',
+        variant: 'destructive'
+      });
+      navigate('/login');
+    }
+  }, [user, navigate, toast]);
 
   const handleDateChange = (date: Date | null) => {
     setBirthDate(date);
@@ -86,9 +98,9 @@ export const MusicianOnboarding = () => {
     setIsSubmitting(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
       
-      if (!user) {
+      if (!currentUser) {
         toast({
           title: 'Authentication error',
           description: 'Please log in to complete your profile',
@@ -98,9 +110,6 @@ export const MusicianOnboarding = () => {
         return;
       }
 
-      // Here you would normally save the user data to your database
-      // For this example, we'll just simulate success and navigate to the dashboard
-      
       toast({
         title: 'Profile complete!',
         description: 'Your musician profile has been created successfully',
@@ -118,6 +127,8 @@ export const MusicianOnboarding = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (!user) return null;
 
   return (
     <AnimatedContainer animation="scale-in" className="w-full max-w-md">

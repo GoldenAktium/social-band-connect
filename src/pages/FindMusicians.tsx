@@ -5,97 +5,24 @@ import FilterSidebar from '@/components/musicians/FilterSidebar';
 import MusicianList from '@/components/musicians/MusicianList';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
-// Sample musicians with some marked as having real accounts and being online
-const sampleMusicians = [
-  {
-    id: 1,
-    name: 'Alex Johnson',
-    instrument: 'Guitar',
-    location: 'New York, NY',
-    distance: '2 miles away',
-    rating: 4.8,
-    reviews: 24,
-    experience: '8 years',
-    genres: ['Rock', 'Blues', 'Jazz'],
-    availability: 'Weekends',
-    image: 'https://randomuser.me/api/portraits/men/32.jpg',
-    online: true,
-    hasAccount: true
-  },
-  {
-    id: 2,
-    name: 'Samantha Lee',
-    instrument: 'Vocals',
-    location: 'Brooklyn, NY',
-    distance: '4 miles away',
-    rating: 4.9,
-    reviews: 36,
-    experience: '10 years',
-    genres: ['Pop', 'R&B', 'Soul'],
-    availability: 'Evenings',
-    image: 'https://randomuser.me/api/portraits/women/44.jpg',
-    online: false,
-    hasAccount: true
-  },
-  {
-    id: 3,
-    name: 'Marcus Wilson',
-    instrument: 'Drums',
-    location: 'Queens, NY',
-    distance: '6 miles away',
-    rating: 4.7,
-    reviews: 19,
-    experience: '5 years',
-    genres: ['Rock', 'Metal', 'Punk'],
-    availability: 'Full-time',
-    image: 'https://randomuser.me/api/portraits/men/22.jpg',
-    hasAccount: false
-  },
-  {
-    id: 4,
-    name: 'Jasmine Chen',
-    instrument: 'Piano',
-    location: 'Manhattan, NY',
-    distance: '1 mile away',
-    rating: 4.6,
-    reviews: 15,
-    experience: '12 years',
-    genres: ['Classical', 'Jazz', 'Contemporary'],
-    availability: 'Weekdays',
-    image: 'https://randomuser.me/api/portraits/women/24.jpg',
-    hasAccount: false
-  },
-  {
-    id: 5,
-    name: 'David Rodriguez',
-    instrument: 'Bass',
-    location: 'Bronx, NY',
-    distance: '8 miles away',
-    rating: 4.5,
-    reviews: 11,
-    experience: '7 years',
-    genres: ['Funk', 'Jazz', 'Latin'],
-    availability: 'Weekends',
-    image: 'https://randomuser.me/api/portraits/men/42.jpg',
-    online: true,
-    hasAccount: true
-  },
-  {
-    id: 6,
-    name: 'Emma Thompson',
-    instrument: 'Violin',
-    location: 'Jersey City, NJ',
-    distance: '10 miles away',
-    rating: 4.9,
-    reviews: 28,
-    experience: '15 years',
-    genres: ['Classical', 'Folk', 'Contemporary'],
-    availability: 'Part-time',
-    image: 'https://randomuser.me/api/portraits/women/14.jpg',
-    hasAccount: false
-  },
-];
+// Moving types to their own file later if they grow
+interface Musician {
+  id: string;
+  name: string;
+  instrument: string;
+  location: string;
+  distance: string;
+  rating: number;
+  reviews: number;
+  experience: string;
+  genres: string[];
+  availability: string;
+  image: string;
+  online: boolean;
+  hasAccount: boolean;
+}
 
 const allGenres = ['Rock', 'Pop', 'Jazz', 'Blues', 'Classical', 'Electronic', 'Hip Hop', 'R&B', 'Folk', 'Country', 'Metal', 'Punk', 'Soul', 'Funk', 'Latin'];
 const allInstruments = ['Guitar', 'Vocals', 'Drums', 'Piano', 'Bass', 'Violin', 'Saxophone', 'Trumpet', 'Flute', 'Cello', 'Keyboard', 'DJ'];
@@ -107,18 +34,52 @@ const FindMusicians = () => {
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
+  const [musicians, setMusicians] = useState<Musician[]>([]);
   const { user } = useAuth();
+  const { toast } = useToast();
 
-  // In a real app, we would fetch online users from the database
-  // For now, we'll use our sample data
-  const [musicians, setMusicians] = useState(sampleMusicians);
-
-  // Simulate fetching online users
   useEffect(() => {
-    // In a real implementation, we would connect to a realtime presence system
-    // For now, we'll just use our sample data
-    console.log("Current user:", user);
-  }, [user]);
+    const fetchMusicians = async () => {
+      try {
+        const { data: users, error } = await supabase
+          .from('musicians')
+          .select('*');
+
+        if (error) {
+          throw error;
+        }
+
+        if (users) {
+          const formattedMusicians = users.map(user => ({
+            id: user.id,
+            name: user.name,
+            instrument: Array.isArray(user.instrument) ? user.instrument[0] : user.instrument,
+            location: user.location || 'Location not specified',
+            distance: user.distance || 'Distance not available',
+            rating: user.rating || 4.5,
+            reviews: user.reviews || 0,
+            experience: user.experience || '0 years',
+            genres: Array.isArray(user.genres) ? user.genres : [],
+            availability: user.availability || 'Not specified',
+            image: user.image || 'https://randomuser.me/api/portraits/lego/1.jpg',
+            online: false, // We'll implement real-time presence later
+            hasAccount: true
+          }));
+
+          setMusicians(formattedMusicians);
+        }
+      } catch (error) {
+        console.error('Error fetching musicians:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load musicians",
+          variant: "destructive"
+        });
+      }
+    };
+
+    fetchMusicians();
+  }, [toast]);
 
   const toggleGenre = (genre: string) => {
     setSelectedGenres(prev => 
@@ -145,7 +106,7 @@ const FindMusicians = () => {
     
     // Distance filter
     const distanceValue = parseInt(musician.distance);
-    const matchesDistance = distanceValue <= distanceFilter[0];
+    const matchesDistance = isNaN(distanceValue) || distanceValue <= distanceFilter[0];
     
     // Genre filter
     const matchesGenre = selectedGenres.length === 0 || 
@@ -156,7 +117,7 @@ const FindMusicians = () => {
       selectedInstruments.includes(musician.instrument);
     
     // Online filter
-    const matchesOnline = !showOnlineOnly || (musician.online === true);
+    const matchesOnline = !showOnlineOnly || musician.online;
     
     return matchesSearch && matchesDistance && matchesGenre && matchesInstrument && matchesOnline;
   });

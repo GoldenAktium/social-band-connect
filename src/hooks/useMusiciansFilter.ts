@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Musician } from '@/types/musician';
 
 export const useMusiciansFilter = (musicians: Musician[]) => {
@@ -26,30 +26,37 @@ export const useMusiciansFilter = (musicians: Musician[]) => {
     );
   };
 
-  const filteredMusicians = musicians.filter((musician) => {
-    // Search term filter
-    const matchesSearch = searchTerm === '' || 
-      musician.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      musician.instrument.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      musician.genres.some(genre => genre.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    // Distance filter
-    const distanceValue = parseInt(musician.distance);
-    const matchesDistance = isNaN(distanceValue) || distanceValue <= distanceFilter[0];
-    
-    // Genre filter
-    const matchesGenre = selectedGenres.length === 0 || 
-      musician.genres.some(genre => selectedGenres.includes(genre));
-    
-    // Instrument filter
-    const matchesInstrument = selectedInstruments.length === 0 || 
-      selectedInstruments.includes(musician.instrument);
-    
-    // Online filter
-    const matchesOnline = !showOnlineOnly || musician.online;
-    
-    return matchesSearch && matchesDistance && matchesGenre && matchesInstrument && matchesOnline;
-  });
+  const filteredMusicians = useMemo(() => {
+    return musicians.filter((musician) => {
+      // Search term filter
+      const musicianName = musician.name?.toLowerCase() || '';
+      const musicianInstrument = musician.instrument?.toLowerCase() || '';
+      
+      const matchesSearch = searchTerm === '' || 
+        musicianName.includes(searchTerm.toLowerCase()) ||
+        musicianInstrument.includes(searchTerm.toLowerCase()) ||
+        (musician.genres && musician.genres.some(genre => 
+          genre.toLowerCase().includes(searchTerm.toLowerCase())
+        ));
+      
+      // Distance filter
+      const distanceValue = musician.distance ? parseInt(musician.distance) : undefined;
+      const matchesDistance = distanceValue === undefined || distanceValue <= distanceFilter[0];
+      
+      // Genre filter
+      const matchesGenre = selectedGenres.length === 0 || 
+        (musician.genres && musician.genres.some(genre => selectedGenres.includes(genre)));
+      
+      // Instrument filter
+      const matchesInstrument = selectedInstruments.length === 0 || 
+        (musician.instrument && selectedInstruments.includes(musician.instrument));
+      
+      // Online filter
+      const matchesOnline = !showOnlineOnly || musician.online === true;
+      
+      return matchesSearch && matchesDistance && matchesGenre && matchesInstrument && matchesOnline;
+    });
+  }, [musicians, searchTerm, distanceFilter, selectedGenres, selectedInstruments, showOnlineOnly]);
 
   return {
     searchTerm,

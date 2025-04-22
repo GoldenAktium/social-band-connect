@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useMusiciansFilter } from '@/hooks/useMusiciansFilter';
 import SearchBar from '@/components/musicians/SearchBar';
@@ -7,12 +8,14 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import type { Musician } from '@/types/musician';
+import { Loader2 } from 'lucide-react';
 
 const allGenres = ['Rock', 'Pop', 'Jazz', 'Blues', 'Classical', 'Electronic', 'Hip Hop', 'R&B', 'Folk', 'Country', 'Metal', 'Punk', 'Soul', 'Funk', 'Latin'];
 const allInstruments = ['Guitar', 'Vocals', 'Drums', 'Piano', 'Bass', 'Violin', 'Saxophone', 'Trumpet', 'Flute', 'Cello', 'Keyboard', 'DJ'];
 
 const FindMusicians = () => {
   const [musicians, setMusicians] = useState<Musician[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -35,6 +38,7 @@ const FindMusicians = () => {
   useEffect(() => {
     const fetchMusicians = async () => {
       try {
+        setLoading(true);
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -45,7 +49,11 @@ const FindMusicians = () => {
         }
 
         if (data) {
+          console.log('Fetched musicians:', data);
           setMusicians(data as Musician[]);
+        } else {
+          console.log('No musicians found');
+          setMusicians([]);
         }
       } catch (error) {
         console.error('Error fetching musicians:', error);
@@ -54,6 +62,8 @@ const FindMusicians = () => {
           description: "Failed to load musicians",
           variant: "destructive"
         });
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -88,7 +98,14 @@ const FindMusicians = () => {
             setSearchTerm={setSearchTerm}
           />
           
-          <MusicianList musicians={filteredMusicians} />
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">Loading musicians...</span>
+            </div>
+          ) : (
+            <MusicianList musicians={filteredMusicians} />
+          )}
         </div>
       </div>
     </div>

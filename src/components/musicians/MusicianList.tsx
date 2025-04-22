@@ -31,12 +31,12 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
     if (musician.online) {
       toast({
         title: "Message sent",
-        description: `Your request to contact ${musician.name} has been sent.`,
+        description: `Your request to contact ${musician.name || 'this user'} has been sent.`,
       });
     } else {
       toast({
-        title: "Cannot contact musician",
-        description: "This musician is currently offline",
+        title: "Cannot contact user",
+        description: "This user is currently offline",
         variant: "destructive",
       });
     }
@@ -46,7 +46,7 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">
-          {musicians.length} Musicians Found
+          {musicians.length} Users Found
         </h2>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -72,8 +72,8 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
                 <div className="sm:w-1/3 p-4 flex items-center justify-center bg-muted">
                   <div className="relative">
                     <Avatar className="h-24 w-24">
-                      <AvatarImage src={musician.avatar_url || ''} alt={musician.name} />
-                      <AvatarFallback>{musician.name?.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={musician.avatar_url || ''} alt={musician.name || 'User'} />
+                      <AvatarFallback>{musician.name ? musician.name.charAt(0) : 'U'}</AvatarFallback>
                     </Avatar>
                     {musician.online && (
                       <span className="absolute bottom-0 right-0 h-4 w-4 bg-green-500 rounded-full border-2 border-white"></span>
@@ -83,13 +83,17 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
                 <div className="sm:w-2/3 p-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-bold text-lg">{musician.name}</h3>
-                      <p className="text-muted-foreground">{musician.instrument || 'No instrument specified'}</p>
+                      <h3 className="font-bold text-lg">{musician.name || 'Unnamed User'}</h3>
+                      <p className="text-muted-foreground">{musician.instrument || (musician.user_type === 'musician' ? 'No instrument specified' : musician.user_type === 'band' ? 'Band' : 'User')}</p>
                     </div>
                     <div className="flex items-center">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                      <span className="font-medium">{musician.rating}</span>
-                      <span className="text-muted-foreground text-sm ml-1">({musician.reviews})</span>
+                      {musician.rating !== null && (
+                        <>
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                          <span className="font-medium">{musician.rating}</span>
+                          <span className="text-muted-foreground text-sm ml-1">({musician.reviews || 0})</span>
+                        </>
+                      )}
                     </div>
                   </div>
                   
@@ -142,7 +146,7 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
       ) : (
         <div className="text-center py-12">
           <User className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-medium">No musicians found</h3>
+          <h3 className="mt-4 text-lg font-medium">No users found</h3>
           <p className="text-muted-foreground">
             Try adjusting your filters or search terms
           </p>

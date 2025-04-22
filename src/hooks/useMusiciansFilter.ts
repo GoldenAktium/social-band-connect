@@ -27,31 +27,48 @@ export const useMusiciansFilter = (musicians: Musician[]) => {
   };
 
   const filteredMusicians = useMemo(() => {
+    // If there are no musicians, return empty array
+    if (!musicians || musicians.length === 0) {
+      return [];
+    }
+
     return musicians.filter((musician) => {
-      // Search term filter
-      const musicianName = musician.name?.toLowerCase() || '';
-      const musicianInstrument = musician.instrument?.toLowerCase() || '';
+      // Default to true if search is empty
+      let matchesSearch = true;
       
-      const matchesSearch = searchTerm === '' || 
-        musicianName.includes(searchTerm.toLowerCase()) ||
-        musicianInstrument.includes(searchTerm.toLowerCase()) ||
-        (musician.genres && musician.genres.some(genre => 
-          genre.toLowerCase().includes(searchTerm.toLowerCase())
-        ));
+      if (searchTerm !== '') {
+        const musicianName = musician.name?.toLowerCase() || '';
+        const musicianInstrument = musician.instrument?.toLowerCase() || '';
+        
+        matchesSearch = musicianName.includes(searchTerm.toLowerCase()) ||
+          musicianInstrument.includes(searchTerm.toLowerCase()) ||
+          (musician.genres && musician.genres.some(genre => 
+            genre.toLowerCase().includes(searchTerm.toLowerCase())
+          ));
+      }
       
-      // Distance filter
-      const distanceValue = musician.distance ? parseInt(musician.distance) : undefined;
-      const matchesDistance = distanceValue === undefined || distanceValue <= distanceFilter[0];
+      // Distance filter - default to true if no distance info
+      let matchesDistance = true;
+      if (musician.distance) {
+        const distanceValue = parseInt(musician.distance);
+        matchesDistance = isNaN(distanceValue) || distanceValue <= distanceFilter[0];
+      }
       
-      // Genre filter
-      const matchesGenre = selectedGenres.length === 0 || 
-        (musician.genres && musician.genres.some(genre => selectedGenres.includes(genre)));
+      // Genre filter - default to true if no selected genres
+      let matchesGenre = true;
+      if (selectedGenres.length > 0) {
+        matchesGenre = musician.genres && musician.genres.some(genre => 
+          selectedGenres.includes(genre)
+        );
+      }
       
-      // Instrument filter
-      const matchesInstrument = selectedInstruments.length === 0 || 
-        (musician.instrument && selectedInstruments.includes(musician.instrument));
+      // Instrument filter - default to true if no selected instruments
+      let matchesInstrument = true;
+      if (selectedInstruments.length > 0) {
+        matchesInstrument = musician.instrument && selectedInstruments.includes(musician.instrument);
+      }
       
-      // Online filter
+      // Online filter - only apply if showOnlineOnly is true
       const matchesOnline = !showOnlineOnly || musician.online === true;
       
       return matchesSearch && matchesDistance && matchesGenre && matchesInstrument && matchesOnline;

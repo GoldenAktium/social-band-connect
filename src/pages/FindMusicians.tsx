@@ -39,27 +39,27 @@ const FindMusicians = () => {
     const fetchMusicians = async () => {
       try {
         setLoading(true);
+        // Remove the filter by user_type to show all profiles
         const { data, error } = await supabase
           .from('profiles')
-          .select('*')
-          .eq('user_type', 'musician');
+          .select('*');
 
         if (error) {
           throw error;
         }
 
-        if (data) {
-          console.log('Fetched musicians:', data);
+        if (data && data.length > 0) {
+          console.log('Fetched profiles:', data);
           setMusicians(data as Musician[]);
         } else {
-          console.log('No musicians found');
+          console.log('No profiles found');
           setMusicians([]);
         }
       } catch (error) {
-        console.error('Error fetching musicians:', error);
+        console.error('Error fetching profiles:', error);
         toast({
           title: "Error",
-          description: "Failed to load musicians",
+          description: "Failed to load profiles",
           variant: "destructive"
         });
       } finally {
@@ -101,10 +101,18 @@ const FindMusicians = () => {
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-2">Loading musicians...</span>
+              <span className="ml-2">Loading profiles...</span>
             </div>
           ) : (
-            <MusicianList musicians={filteredMusicians} />
+            <>
+              {musicians.length > 0 ? (
+                <MusicianList musicians={filteredMusicians} />
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-lg">No profiles found in the database.</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

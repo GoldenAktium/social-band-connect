@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useMusiciansFilter } from '@/hooks/useMusiciansFilter';
 import SearchBar from '@/components/musicians/SearchBar';
@@ -11,40 +10,6 @@ import type { Musician } from '@/types/musician';
 
 const allGenres = ['Rock', 'Pop', 'Jazz', 'Blues', 'Classical', 'Electronic', 'Hip Hop', 'R&B', 'Folk', 'Country', 'Metal', 'Punk', 'Soul', 'Funk', 'Latin'];
 const allInstruments = ['Guitar', 'Vocals', 'Drums', 'Piano', 'Bass', 'Violin', 'Saxophone', 'Trumpet', 'Flute', 'Cello', 'Keyboard', 'DJ'];
-
-// Sample data for musicians
-const sampleMusicians: Musician[] = [
-  {
-    id: '1',
-    name: 'Alex Johnson',
-    instrument: 'Guitar',
-    location: 'New York, NY',
-    distance: '5 miles',
-    rating: 4.8,
-    reviews: 24,
-    experience: '10 years',
-    genres: ['Rock', 'Blues'],
-    availability: 'Weekends',
-    image: 'https://randomuser.me/api/portraits/men/32.jpg',
-    online: true,
-    hasAccount: true
-  },
-  {
-    id: '2',
-    name: 'Sarah Williams',
-    instrument: 'Vocals',
-    location: 'Los Angeles, CA',
-    distance: '15 miles',
-    rating: 4.9,
-    reviews: 36,
-    experience: '8 years',
-    genres: ['Pop', 'R&B', 'Soul'],
-    availability: 'Evenings',
-    image: 'https://randomuser.me/api/portraits/women/44.jpg',
-    online: false,
-    hasAccount: true
-  }
-];
 
 const FindMusicians = () => {
   const [musicians, setMusicians] = useState<Musician[]>([]);
@@ -70,15 +35,10 @@ const FindMusicians = () => {
   useEffect(() => {
     const fetchMusicians = async () => {
       try {
-        // In a real implementation, we would fetch from a table that exists
-        // For now, we'll use our sample data
-        setMusicians(sampleMusicians);
-
-        // When you have a proper table in Supabase, uncomment and modify this:
-        /*
         const { data, error } = await supabase
-          .from('musicians')  // Use the correct table name
-          .select('*');
+          .from('profiles')
+          .select('*')
+          .eq('user_type', 'musician');
 
         if (error) {
           throw error;
@@ -87,7 +47,6 @@ const FindMusicians = () => {
         if (data) {
           setMusicians(data as Musician[]);
         }
-        */
       } catch (error) {
         console.error('Error fetching musicians:', error);
         toast({

@@ -39,6 +39,60 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          availability: string | null
+          avatar_url: string | null
+          created_at: string | null
+          distance: string | null
+          experience: string | null
+          genres: string[] | null
+          id: string
+          instrument: string | null
+          location: string | null
+          name: string | null
+          online: boolean | null
+          rating: number | null
+          reviews: number | null
+          updated_at: string | null
+          user_type: Database["public"]["Enums"]["user_type"] | null
+        }
+        Insert: {
+          availability?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          distance?: string | null
+          experience?: string | null
+          genres?: string[] | null
+          id: string
+          instrument?: string | null
+          location?: string | null
+          name?: string | null
+          online?: boolean | null
+          rating?: number | null
+          reviews?: number | null
+          updated_at?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"] | null
+        }
+        Update: {
+          availability?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          distance?: string | null
+          experience?: string | null
+          genres?: string[] | null
+          id?: string
+          instrument?: string | null
+          location?: string | null
+          name?: string | null
+          online?: boolean | null
+          rating?: number | null
+          reviews?: number | null
+          updated_at?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"] | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -47,7 +101,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_type: "musician" | "band"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -162,6 +216,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_type: ["musician", "band"],
+    },
   },
 } as const

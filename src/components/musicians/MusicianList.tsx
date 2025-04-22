@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, MapPin, User, ChevronDown, MessageCircle } from 'lucide-react';
@@ -27,8 +28,7 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
   };
 
   const handleContactMusician = (musician: Musician) => {
-    if (musician.hasAccount && musician.online) {
-      // In a real implementation, this would open a chat with the musician
+    if (musician.online) {
       toast({
         title: "Message sent",
         description: `Your request to contact ${musician.name} has been sent.`,
@@ -36,7 +36,7 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
     } else {
       toast({
         title: "Cannot contact musician",
-        description: "This musician is currently offline or is a sample profile.",
+        description: "This musician is currently offline",
         variant: "destructive",
       });
     }
@@ -72,8 +72,8 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
                 <div className="sm:w-1/3 p-4 flex items-center justify-center bg-muted">
                   <div className="relative">
                     <Avatar className="h-24 w-24">
-                      <AvatarImage src={musician.image} alt={musician.name} />
-                      <AvatarFallback>{musician.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={musician.avatar_url || ''} alt={musician.name} />
+                      <AvatarFallback>{musician.name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     {musician.online && (
                       <span className="absolute bottom-0 right-0 h-4 w-4 bg-green-500 rounded-full border-2 border-white"></span>
@@ -84,7 +84,7 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="font-bold text-lg">{musician.name}</h3>
-                      <p className="text-muted-foreground">{musician.instrument}</p>
+                      <p className="text-muted-foreground">{musician.instrument || 'No instrument specified'}</p>
                     </div>
                     <div className="flex items-center">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
@@ -93,37 +93,39 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
                     </div>
                   </div>
                   
-                  <div className="mt-2 flex items-center text-sm text-muted-foreground">
-                    <MapPin className="h-3 w-3 mr-1" />
-                    <span>{musician.distance}</span>
-                    {musician.online && (
-                      <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 border-green-400">
-                        Online
-                      </Badge>
-                    )}
-                  </div>
+                  {musician.location && (
+                    <div className="mt-2 flex items-center text-sm text-muted-foreground">
+                      <MapPin className="h-3 w-3 mr-1" />
+                      <span>{musician.distance || musician.location}</span>
+                      {musician.online && (
+                        <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 border-green-400">
+                          Online
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                   
-                  <div className="mt-3 flex flex-wrap gap-1">
-                    {musician.genres.map((genre) => (
-                      <Badge key={genre} variant="secondary" className="text-xs">
-                        {genre}
-                      </Badge>
-                    ))}
-                  </div>
+                  {musician.genres && musician.genres.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-1">
+                      {musician.genres.map((genre) => (
+                        <Badge key={genre} variant="secondary" className="text-xs">
+                          {genre}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                   
                   <div className="mt-4 flex justify-between items-center">
-                    <span className="text-sm">{musician.experience}</span>
+                    <span className="text-sm">{musician.experience || 'Experience not specified'}</span>
                     <div className="flex gap-2">
-                      {musician.hasAccount && musician.online && (
-                        <Button 
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleContactMusician(musician)}
-                        >
-                          <MessageCircle className="h-4 w-4 mr-1" />
-                          Contact
-                        </Button>
-                      )}
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleContactMusician(musician)}
+                      >
+                        <MessageCircle className="h-4 w-4 mr-1" />
+                        Contact
+                      </Button>
                       <Button 
                         size="sm"
                         onClick={() => handleViewProfile(musician.id)}

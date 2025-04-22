@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,7 +8,6 @@ interface UserData {
   id: string;
   email: string;
   name?: string;
-  userType?: 'musician' | 'band-creator';
 }
 
 interface AuthContextType {
@@ -17,7 +17,6 @@ interface AuthContextType {
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateUserData: (data: Partial<UserData>) => void;
-  setUserType: (type: 'musician' | 'band-creator') => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,14 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
-          // Try to retrieve user type from localStorage
-          const savedUserType = localStorage.getItem(`userType_${session.user.id}`);
-          
           setUser({
             id: session.user.id,
             email: session.user.email || '',
-            name: session.user.user_metadata?.name,
-            userType: savedUserType as 'musician' | 'band-creator' | undefined
+            name: session.user.user_metadata?.name 
           });
         }
       } catch (error) {
@@ -58,14 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user) {
-          // Try to retrieve user type from localStorage
-          const savedUserType = localStorage.getItem(`userType_${session.user.id}`);
-          
           setUser({
             id: session.user.id,
             email: session.user.email || '',
-            name: session.user.user_metadata?.name,
-            userType: savedUserType as 'musician' | 'band-creator' | undefined
+            name: session.user.user_metadata?.name
           });
         } else {
           setUser(null);
@@ -78,19 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       subscription.unsubscribe();
     };
   }, []);
-
-  const setUserType = (type: 'musician' | 'band-creator') => {
-    if (user) {
-      // Save user type in localStorage
-      localStorage.setItem(`userType_${user.id}`, type);
-      
-      // Update user state
-      setUser({
-        ...user,
-        userType: type
-      });
-    }
-  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -117,14 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data.user) {
-        // Try to retrieve user type from localStorage
-        const savedUserType = localStorage.getItem(`userType_${data.user.id}`);
-        
         setUser({
           id: data.user.id,
           email: data.user.email || '',
-          name: data.user.user_metadata?.name,
-          userType: savedUserType as 'musician' | 'band-creator' | undefined
+          name: data.user.user_metadata?.name
         });
         
         toast({
@@ -132,13 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           description: `You've successfully signed in.`,
         });
         
-        // If user has already selected a type, redirect to dashboard
-        // Otherwise, redirect to user type selection
-        if (savedUserType) {
-          navigate('/dashboard');
-        } else {
-          navigate('/user-type');
-        }
+        navigate('/dashboard');
       }
     } catch (error: any) {
       toast({
@@ -216,7 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, updateUserData, setUserType }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, updateUserData }}>
       {children}
     </AuthContext.Provider>
   );

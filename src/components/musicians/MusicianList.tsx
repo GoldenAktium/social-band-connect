@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, MapPin, User, ChevronDown, MessageCircle } from 'lucide-react';
@@ -13,22 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
-
-interface Musician {
-  id: number;
-  name: string;
-  instrument: string;
-  location: string;
-  distance: string;
-  rating: number;
-  reviews: number;
-  experience: string;
-  genres: string[];
-  availability: string;
-  image: string;
-  online?: boolean;
-  hasAccount?: boolean;
-}
+import type { Musician } from '@/types/musician';
 
 interface MusicianListProps {
   musicians: Musician[];
@@ -38,7 +22,7 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleViewProfile = (musicianId: number) => {
+  const handleViewProfile = (musicianId: string) => {
     navigate(`/musician/${musicianId}`);
   };
 

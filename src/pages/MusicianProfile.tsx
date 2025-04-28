@@ -6,29 +6,16 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { genres } from '@/components/onboarding/BandDetailsStep';
 import { instruments } from '@/components/onboarding/InstrumentSelection';
 import { HomeButton } from '@/components/HomeButton';
-
-interface MusicianProfile {
-  id: string;
-  name: string;
-  instruments: string[];
-  genres: string[];
-  location: string;
-  skillLevel: string;
-  age: number;
-  experience: string;
-  bio: string;
-  email: string;
-}
+import type { Musician } from '@/types/musician';
 
 const MusicianProfile = () => {
   const { id } = useParams();
-  const [musician, setMusician] = useState<MusicianProfile | null>(null);
+  const [musician, setMusician] = useState<Musician | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -47,22 +34,21 @@ const MusicianProfile = () => {
   useEffect(() => {
     const fetchMusicianProfile = async () => {
       try {
-        // For now using the musicians data from FindMusicians page
-        // In a real app, this would fetch from Supabase
-        const musician = {
-          id: '1',
-          name: 'Alex Johnson',
-          instruments: ['guitar'],
-          genres: ['rock', 'blues', 'jazz'],
-          location: 'New York, NY',
-          skillLevel: 'intermediate',
-          age: 28,
-          experience: '8',
-          bio: 'Professional guitarist with experience in rock, blues, and jazz. Available for session work, tours, and forming new bands.',
-          email: 'alex.johnson@example.com'
-        };
-        
-        setMusician(musician);
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        if (data) {
+          console.log('Fetched profile:', data);
+          setMusician(data as Musician);
+        }
       } catch (error) {
         console.error('Error fetching musician profile:', error);
         toast({
@@ -75,7 +61,9 @@ const MusicianProfile = () => {
       }
     };
 
-    fetchMusicianProfile();
+    if (id) {
+      fetchMusicianProfile();
+    }
   }, [id, toast]);
 
   if (loading) {
@@ -112,13 +100,15 @@ const MusicianProfile = () => {
           <Card className="mb-6">
             <CardContent className="pt-6 flex flex-col items-center">
               <Avatar className="h-32 w-32 mb-4">
-                <AvatarImage src={`https://randomuser.me/api/portraits/men/32.jpg`} alt={musician.name} />
-                <AvatarFallback>{musician.name.charAt(0)}</AvatarFallback>
+                <AvatarImage src={musician.avatar_url || undefined} alt={musician.name || 'User'} />
+                <AvatarFallback>{musician.name ? musician.name.charAt(0) : 'U'}</AvatarFallback>
               </Avatar>
-              <h1 className="text-2xl font-bold mb-1">{musician.name}</h1>
-              <p className="text-muted-foreground flex items-center mb-4">
-                <MapPin className="h-4 w-4 mr-1" /> {musician.location}
-              </p>
+              <h1 className="text-2xl font-bold mb-1">{musician.name || 'Unnamed User'}</h1>
+              {musician.location && (
+                <p className="text-muted-foreground flex items-center mb-4">
+                  <MapPin className="h-4 w-4 mr-1" /> {musician.location}
+                </p>
+              )}
               <Button className="w-full mb-2">
                 <Mail className="h-4 w-4 mr-2" /> Contact
               </Button>
@@ -131,65 +121,68 @@ const MusicianProfile = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-sm text-muted-foreground">Age</p>
-                <p className="font-medium">{musician.age} years</p>
+                <p className="text-sm text-muted-foreground">Status</p>
+                <p className="font-medium">{musician.online ? 'Online' : 'Offline'}</p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Experience</p>
-                <p className="font-medium">{musician.experience} years</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Skill Level</p>
-                <p className="font-medium capitalize">{musician.skillLevel}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium">{musician.email}</p>
-              </div>
+              {musician.rating !== null && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Rating</p>
+                  <div className="flex items-center">
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                    <span className="font-medium">{musician.rating}</span>
+                    <span className="text-muted-foreground text-sm ml-1">({musician.reviews || 0} reviews)</span>
+                  </div>
+                </div>
+              )}
+              {musician.experience && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Experience</p>
+                  <p className="font-medium">{musician.experience}</p>
+                </div>
+              )}
+              {musician.availability && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Availability</p>
+                  <p className="font-medium">{musician.availability}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
 
         {/* Main Content */}
         <div className="md:col-span-2">
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="text-lg">About</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>{musician.bio}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="text-lg">Instruments</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {musician.instruments.map(instrumentId => (
-                  <Badge key={instrumentId} className="bg-primary text-primary-foreground">
-                    {getInstrumentName(instrumentId)}
+          {musician.instrument && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-lg">Instruments</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  <Badge className="bg-primary text-primary-foreground">
+                    {musician.instrument}
                   </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="text-lg">Genres</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {musician.genres.map(genreId => (
-                  <Badge key={genreId} variant="outline">
-                    {getGenreName(genreId)}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          {musician.genres && musician.genres.length > 0 && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-lg">Genres</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {musician.genres.map((genre, index) => (
+                    <Badge key={index} variant="outline">
+                      {genre}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
           
           <Card>
             <CardHeader>
@@ -209,3 +202,4 @@ const MusicianProfile = () => {
 };
 
 export default MusicianProfile;
+

@@ -13,12 +13,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import type { Musician } from '@/types/musician';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Group } from '@/types/group';
+import { loadUserGroups, createGroup, inviteMusicianToGroup } from '@/services/groupService';
 
 interface GroupInviteDialogProps {
   open: boolean;
@@ -37,28 +37,20 @@ const GroupInviteDialog = ({ open, onOpenChange, musician }: GroupInviteDialogPr
 
   useEffect(() => {
     if (open && user) {
-      loadUserGroups();
+      fetchUserGroups();
     }
   }, [open, user]);
 
-  const loadUserGroups = async () => {
+  const fetchUserGroups = async () => {
     if (!user) return;
     
     try {
-      // Use any() to bypass TypeScript checking for not-yet-defined tables
-      const { data, error } = await supabase
-        .from('groups')
-        .select('*')
-        .eq('owner_id', user.id) as any;
+      const userGroups = await loadUserGroups(user.id);
+      setGroups(userGroups);
       
-      if (error) throw error;
-      
-      if (data) {
-        setGroups(data);
-        // Select first group by default if any exist
-        if (data.length > 0) {
-          setSelectedGroup(data[0].id);
-        }
+      // Select first group by default if any exist
+      if (userGroups.length > 0) {
+        setSelectedGroup(userGroups[0].id);
       }
     } catch (error) {
       console.error('Error loading groups:', error);
@@ -76,37 +68,17 @@ const GroupInviteDialog = ({ open, onOpenChange, musician }: GroupInviteDialogPr
     setIsLoading(true);
     try {
       // First, create the group
-      const { data: groupData, error: groupError } = await supabase
-        .from('groups')
-        .insert([
-          { name: newGroupName, owner_id: user.id }
-        ])
-        .select()
-        .single() as any;
+      const groupData = await createGroup(newGroupName, user.id);
       
-      if (groupError) throw groupError;
+      // Then, add the musician to the group
+      await inviteMusicianToGroup(groupData.id, musician.id);
       
-      if (groupData) {
-        // Then, add the musician to the group
-        const { error: memberError } = await supabase
-          .from('group_members')
-          .insert([
-            { 
-              group_id: groupData.id, 
-              user_id: musician.id,
-              status: 'invited'
-            }
-          ]) as any;
-        
-        if (memberError) throw memberError;
-        
-        toast({
-          title: "Success",
-          description: `Created group "${newGroupName}" and invited ${musician.name || 'this user'}`,
-        });
-        onOpenChange(false);
-        setNewGroupName("");
-      }
+      toast({
+        title: "Success",
+        description: `Created group "${newGroupName}" and invited ${musician.name || 'this user'}`,
+      });
+      onOpenChange(false);
+      setNewGroupName("");
     } catch (error) {
       console.error('Error creating group:', error);
       toast({
@@ -124,37 +96,7 @@ const GroupInviteDialog = ({ open, onOpenChange, musician }: GroupInviteDialogPr
     
     setIsLoading(true);
     try {
-      // Check if user is already in the group
-      const { data: existingMember, error: checkError } = await supabase
-        .from('group_members')
-        .select('*')
-        .eq('group_id', selectedGroup)
-        .eq('user_id', musician.id)
-        .maybeSingle() as any;
-      
-      if (checkError) throw checkError;
-      
-      if (existingMember) {
-        toast({
-          title: "Info",
-          description: `${musician.name || 'This user'} is already in this group`,
-        });
-        onOpenChange(false);
-        return;
-      }
-      
-      // Add the musician to the group
-      const { error: memberError } = await supabase
-        .from('group_members')
-        .insert([
-          { 
-            group_id: selectedGroup, 
-            user_id: musician.id,
-            status: 'invited'
-          }
-        ]) as any;
-      
-      if (memberError) throw memberError;
+      await inviteMusicianToGroup(selectedGroup, musician.id);
       
       // Get the group name
       const selectedGroupData = groups.find(group => group.id === selectedGroup);

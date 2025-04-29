@@ -12,7 +12,7 @@ export async function loadUserGroups(userId: string): Promise<Group[]> {
     
     if (error) throw error;
     
-    return data || [];
+    return data as unknown as Group[] || [];
   } catch (error) {
     console.error('Error loading groups:', error);
     throw error;
@@ -32,7 +32,7 @@ export async function createGroup(name: string, ownerId: string): Promise<Group>
     if (error) throw error;
     if (!data) throw new Error('No data returned from group creation');
     
-    return data as Group;
+    return data as unknown as Group;
   } catch (error) {
     console.error('Error creating group:', error);
     throw error;

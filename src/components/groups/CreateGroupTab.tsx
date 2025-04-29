@@ -7,6 +7,7 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { createGroup, inviteMusicianToGroup } from '@/services/groupService';
 import type { Musician } from '@/types/musician';
+import { useAuth } from '@/context/AuthContext';
 
 interface CreateGroupTabProps {
   musician: Musician | null;
@@ -17,26 +18,23 @@ const CreateGroupTab = ({ musician, onSuccess }: CreateGroupTabProps) => {
   const [newGroupName, setNewGroupName] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleCreateGroup = async () => {
-    if (!musician || !newGroupName.trim()) return;
-    
-    setIsLoading(true);
-    try {
-      // Get the user from local storage
-      const userString = localStorage.getItem('auth-user');
-      if (!userString) {
+    if (!musician || !newGroupName.trim() || !user) {
+      if (!user) {
         toast({
           title: "Error",
           description: "You must be logged in to create a group",
           variant: "destructive"
         });
-        return;
       }
-      
-      const user = JSON.parse(userString);
-      
-      // First, create the group
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      // Use the user from AuthContext instead of localStorage
       const groupData = await createGroup(newGroupName, user.id);
       
       // Then, add the musician to the group
@@ -76,7 +74,7 @@ const CreateGroupTab = ({ musician, onSuccess }: CreateGroupTabProps) => {
       <DialogFooter className="mt-4">
         <Button
           onClick={handleCreateGroup}
-          disabled={!newGroupName.trim() || isLoading}
+          disabled={!newGroupName.trim() || isLoading || !user}
         >
           {isLoading ? "Creating..." : "Create Group"}
         </Button>

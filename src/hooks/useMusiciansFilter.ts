@@ -32,7 +32,13 @@ export const useMusiciansFilter = (musicians: Musician[]) => {
       return [];
     }
 
-    return musicians.filter((musician) => {
+    // Set all musicians as online for demo purposes
+    const enhancedMusicians = musicians.map(musician => ({
+      ...musician,
+      online: true
+    }));
+
+    return enhancedMusicians.filter((musician) => {
       // Default to true if search is empty
       let matchesSearch = true;
       
@@ -69,6 +75,7 @@ export const useMusiciansFilter = (musicians: Musician[]) => {
       }
       
       // Online filter - only apply if showOnlineOnly is true
+      // Note: We're setting all musicians as online now
       const matchesOnline = !showOnlineOnly || musician.online === true;
       
       return matchesSearch && matchesDistance && matchesGenre && matchesInstrument && matchesOnline;

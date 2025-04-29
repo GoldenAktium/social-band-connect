@@ -5,15 +5,15 @@ import type { Musician } from '@/types/musician';
 
 export async function loadUserGroups(userId: string): Promise<Group[]> {
   try {
-    // Use type assertion to bypass TypeScript's type checking for the table name
+    // Use complete type assertion to bypass TypeScript's type checking
     const { data, error } = await supabase
       .from('groups')
       .select('*')
-      .eq('owner_id', userId) as any;
+      .eq('owner_id', userId) as { data: any; error: any };
     
     if (error) throw error;
     
-    return data as unknown as Group[] || [];
+    return data as Group[] || [];
   } catch (error) {
     console.error('Error loading groups:', error);
     throw error;
@@ -22,19 +22,19 @@ export async function loadUserGroups(userId: string): Promise<Group[]> {
 
 export async function createGroup(name: string, ownerId: string): Promise<Group> {
   try {
-    // Use type assertion to bypass TypeScript's type checking for the table name
+    // Use complete type assertion to bypass TypeScript's type checking
     const { data, error } = await supabase
       .from('groups')
       .insert([
         { name, owner_id: ownerId }
       ])
       .select()
-      .single() as any;
+      .single() as { data: any; error: any };
     
     if (error) throw error;
     if (!data) throw new Error('No data returned from group creation');
     
-    return data as unknown as Group;
+    return data as Group;
   } catch (error) {
     console.error('Error creating group:', error);
     throw error;
@@ -52,7 +52,7 @@ export async function inviteMusicianToGroup(
       .select('*')
       .eq('group_id', groupId)
       .eq('user_id', musicianId)
-      .maybeSingle() as any;
+      .maybeSingle() as { data: any; error: any };
     
     if (checkError) throw checkError;
     
@@ -67,7 +67,7 @@ export async function inviteMusicianToGroup(
           user_id: musicianId,
           status: 'invited'
         }
-      ]) as any;
+      ]) as { error: any };
     
     if (memberError) throw memberError;
   } catch (error) {

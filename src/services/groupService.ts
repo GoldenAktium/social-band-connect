@@ -5,8 +5,7 @@ import type { Musician } from '@/types/musician';
 
 export async function loadUserGroups(userId: string): Promise<Group[]> {
   try {
-    // Cast the entire supabase instance to any first to bypass TypeScript's type checking
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('groups')
       .select('*')
       .eq('owner_id', userId);
@@ -22,8 +21,7 @@ export async function loadUserGroups(userId: string): Promise<Group[]> {
 
 export async function createGroup(name: string, ownerId: string): Promise<Group> {
   try {
-    // Cast the entire supabase instance to any first to bypass TypeScript's type checking
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('groups')
       .insert([
         { name, owner_id: ownerId }
@@ -47,7 +45,7 @@ export async function inviteMusicianToGroup(
 ): Promise<void> {
   try {
     // First check if user is already in the group
-    const { data: existingMember, error: checkError } = await (supabase as any)
+    const { data: existingMember, error: checkError } = await supabase
       .from('group_members')
       .select('*')
       .eq('group_id', groupId)
@@ -59,7 +57,7 @@ export async function inviteMusicianToGroup(
     // If already a member, don't add again
     if (existingMember) return;
     
-    const { error: memberError } = await (supabase as any)
+    const { error: memberError } = await supabase
       .from('group_members')
       .insert([
         { 

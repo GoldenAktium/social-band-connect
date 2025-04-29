@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, MapPin, User, ChevronDown, MessageCircle } from 'lucide-react';
+import { Star, MapPin, User, ChevronDown, UserPlus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
 import type { Musician } from '@/types/musician';
+import GroupInviteDialog from '@/components/groups/GroupInviteDialog';
 
 interface MusicianListProps {
   musicians: Musician[];
@@ -22,24 +23,16 @@ interface MusicianListProps {
 const MusicianList = ({ musicians }: MusicianListProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [selectedMusician, setSelectedMusician] = useState<Musician | null>(null);
+  const [showGroupDialog, setShowGroupDialog] = useState(false);
 
   const handleViewProfile = (musicianId: string) => {
     navigate(`/musician/${musicianId}`);
   };
 
-  const handleContactMusician = (musician: Musician) => {
-    if (musician.online) {
-      toast({
-        title: "Message sent",
-        description: `Your request to contact ${musician.name || 'this user'} has been sent.`,
-      });
-    } else {
-      toast({
-        title: "Cannot contact user",
-        description: "This user is currently offline",
-        variant: "destructive",
-      });
-    }
+  const handleInviteToGroup = (musician: Musician) => {
+    setSelectedMusician(musician);
+    setShowGroupDialog(true);
   };
 
   return (
@@ -125,10 +118,10 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
                       <Button 
                         size="sm"
                         variant="outline"
-                        onClick={() => handleContactMusician(musician)}
+                        onClick={() => handleInviteToGroup(musician)}
                       >
-                        <MessageCircle className="h-4 w-4 mr-1" />
-                        Contact
+                        <UserPlus className="h-4 w-4 mr-1" />
+                        Invite to Group
                       </Button>
                       <Button 
                         size="sm"
@@ -152,6 +145,12 @@ const MusicianList = ({ musicians }: MusicianListProps) => {
           </p>
         </div>
       )}
+
+      <GroupInviteDialog 
+        open={showGroupDialog}
+        musician={selectedMusician}
+        onOpenChange={setShowGroupDialog}
+      />
     </div>
   );
 };

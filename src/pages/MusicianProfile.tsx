@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Mail, Music, MapPin, Calendar, Star } from 'lucide-react';
+import { ArrowLeft, Music, MapPin, Calendar, Star, UserPlus } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,11 +12,13 @@ import { genres } from '@/components/onboarding/BandDetailsStep';
 import { instruments } from '@/components/onboarding/InstrumentSelection';
 import { HomeButton } from '@/components/HomeButton';
 import type { Musician } from '@/types/musician';
+import GroupInviteDialog from '@/components/groups/GroupInviteDialog';
 
 const MusicianProfile = () => {
   const { id } = useParams();
   const [musician, setMusician] = useState<Musician | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showGroupDialog, setShowGroupDialog] = useState(false);
   const { toast } = useToast();
 
   // Function to get genre name from ID
@@ -66,6 +68,10 @@ const MusicianProfile = () => {
     }
   }, [id, toast]);
 
+  const handleInviteToGroup = () => {
+    setShowGroupDialog(true);
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto py-8 flex items-center justify-center min-h-screen">
@@ -109,8 +115,8 @@ const MusicianProfile = () => {
                   <MapPin className="h-4 w-4 mr-1" /> {musician.location}
                 </p>
               )}
-              <Button className="w-full mb-2">
-                <Mail className="h-4 w-4 mr-2" /> Contact
+              <Button className="w-full mb-2" onClick={handleInviteToGroup}>
+                <UserPlus className="h-4 w-4 mr-2" /> Invite to Group
               </Button>
             </CardContent>
           </Card>
@@ -197,9 +203,14 @@ const MusicianProfile = () => {
           </Card>
         </div>
       </div>
+
+      <GroupInviteDialog 
+        open={showGroupDialog}
+        musician={musician}
+        onOpenChange={setShowGroupDialog}
+      />
     </div>
   );
 };
 
 export default MusicianProfile;
-

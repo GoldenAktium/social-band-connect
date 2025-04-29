@@ -5,10 +5,11 @@ import type { Musician } from '@/types/musician';
 
 export async function loadUserGroups(userId: string): Promise<Group[]> {
   try {
+    // Use type assertion to bypass TypeScript's type checking for the table name
     const { data, error } = await supabase
       .from('groups')
       .select('*')
-      .eq('owner_id', userId);
+      .eq('owner_id', userId) as any;
     
     if (error) throw error;
     
@@ -21,13 +22,14 @@ export async function loadUserGroups(userId: string): Promise<Group[]> {
 
 export async function createGroup(name: string, ownerId: string): Promise<Group> {
   try {
+    // Use type assertion to bypass TypeScript's type checking for the table name
     const { data, error } = await supabase
       .from('groups')
       .insert([
         { name, owner_id: ownerId }
       ])
       .select()
-      .single();
+      .single() as any;
     
     if (error) throw error;
     if (!data) throw new Error('No data returned from group creation');
@@ -50,7 +52,7 @@ export async function inviteMusicianToGroup(
       .select('*')
       .eq('group_id', groupId)
       .eq('user_id', musicianId)
-      .maybeSingle();
+      .maybeSingle() as any;
     
     if (checkError) throw checkError;
     
@@ -65,7 +67,7 @@ export async function inviteMusicianToGroup(
           user_id: musicianId,
           status: 'invited'
         }
-      ]);
+      ]) as any;
     
     if (memberError) throw memberError;
   } catch (error) {

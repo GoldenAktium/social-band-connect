@@ -5,11 +5,11 @@ import type { Musician } from '@/types/musician';
 
 export async function loadUserGroups(userId: string): Promise<Group[]> {
   try {
-    // Use complete type assertion to bypass TypeScript's type checking
-    const { data, error } = await supabase
+    // Cast the entire supabase instance to any first to bypass TypeScript's type checking
+    const { data, error } = await (supabase as any)
       .from('groups')
       .select('*')
-      .eq('owner_id', userId) as { data: any; error: any };
+      .eq('owner_id', userId);
     
     if (error) throw error;
     
@@ -22,14 +22,14 @@ export async function loadUserGroups(userId: string): Promise<Group[]> {
 
 export async function createGroup(name: string, ownerId: string): Promise<Group> {
   try {
-    // Use complete type assertion to bypass TypeScript's type checking
-    const { data, error } = await supabase
+    // Cast the entire supabase instance to any first to bypass TypeScript's type checking
+    const { data, error } = await (supabase as any)
       .from('groups')
       .insert([
         { name, owner_id: ownerId }
       ])
       .select()
-      .single() as { data: any; error: any };
+      .single();
     
     if (error) throw error;
     if (!data) throw new Error('No data returned from group creation');
@@ -47,19 +47,19 @@ export async function inviteMusicianToGroup(
 ): Promise<void> {
   try {
     // First check if user is already in the group
-    const { data: existingMember, error: checkError } = await supabase
+    const { data: existingMember, error: checkError } = await (supabase as any)
       .from('group_members')
       .select('*')
       .eq('group_id', groupId)
       .eq('user_id', musicianId)
-      .maybeSingle() as { data: any; error: any };
+      .maybeSingle();
     
     if (checkError) throw checkError;
     
     // If already a member, don't add again
     if (existingMember) return;
     
-    const { error: memberError } = await supabase
+    const { error: memberError } = await (supabase as any)
       .from('group_members')
       .insert([
         { 
@@ -67,7 +67,7 @@ export async function inviteMusicianToGroup(
           user_id: musicianId,
           status: 'invited'
         }
-      ]) as { error: any };
+      ]);
     
     if (memberError) throw memberError;
   } catch (error) {

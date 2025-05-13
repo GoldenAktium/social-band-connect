@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Filter, Search, MapPin, Music, Users } from 'lucide-react';
+import { Filter, Search, MapPin, Music, Users, Loader2 } from 'lucide-react';
 import { 
   Select, 
   SelectContent, 
@@ -12,90 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui-custom/Button";
 import BandCard from '@/components/BandCard';
 import { genres } from '@/components/onboarding/BandDetailsStep';
-
-// Mock data for the bands
-const MOCK_BANDS = [
-  {
-    id: '1',
-    name: 'Electric Harmony',
-    genre: ['rock', 'metal'],
-    location: 'New York, NY',
-    skillLevel: 'intermediate',
-    members: 3,
-    lookingFor: ['drummer', 'vocalist'],
-    description: 'Rock band looking for a drummer and vocalist to complete our sound.'
-  },
-  {
-    id: '2',
-    name: 'Jazz Collective',
-    genre: ['jazz', 'blues'],
-    location: 'Chicago, IL',
-    skillLevel: 'advanced',
-    members: 4,
-    lookingFor: ['saxophonist'],
-    description: 'Professional jazz group seeking an experienced saxophonist.'
-  },
-  {
-    id: '3',
-    name: 'Indie Dreams',
-    genre: ['indie', 'pop'],
-    location: 'Austin, TX',
-    skillLevel: 'beginner',
-    members: 2,
-    lookingFor: ['bassist', 'keyboardist'],
-    description: 'New indie band looking to grow with passionate musicians.'
-  },
-  {
-    id: '4',
-    name: 'Rhythm Section',
-    genre: ['r&b', 'hip-hop'],
-    location: 'Los Angeles, CA',
-    skillLevel: 'intermediate',
-    members: 3,
-    lookingFor: ['guitarist'],
-    description: 'R&B group looking for a skilled guitarist to join our team.'
-  },
-  {
-    id: '5',
-    name: 'Classical Fusion',
-    genre: ['classical', 'folk'],
-    location: 'Boston, MA',
-    skillLevel: 'advanced',
-    members: 5,
-    lookingFor: ['violinist'],
-    description: 'Fusion ensemble seeking a classically trained violinist.'
-  },
-  {
-    id: '6',
-    name: 'Electronic Dreams',
-    genre: ['electronic', 'pop'],
-    location: 'Miami, FL',
-    skillLevel: 'intermediate',
-    members: 2,
-    lookingFor: ['producer', 'vocalist'],
-    description: 'Electronic music duo looking for a producer and vocalist.'
-  },
-  {
-    id: '7',
-    name: 'Country Roads',
-    genre: ['country', 'folk'],
-    location: 'Nashville, TN',
-    skillLevel: 'beginner',
-    members: 3,
-    lookingFor: ['fiddle player', 'bassist'],
-    description: 'Country band welcoming beginners who love the genre.'
-  },
-  {
-    id: '8',
-    name: 'Metal Mayhem',
-    genre: ['metal'],
-    location: 'Seattle, WA',
-    skillLevel: 'advanced',
-    members: 4,
-    lookingFor: ['drummer'],
-    description: 'Heavy metal band looking for a technical drummer.'
-  }
-];
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
+import type { Musician } from '@/types/musician';
 
 // Locations and skill levels for filters
 const LOCATIONS = ['All Locations', 'New York, NY', 'Chicago, IL', 'Austin, TX', 'Los Angeles, CA', 'Boston, MA', 'Miami, FL', 'Nashville, TN', 'Seattle, WA'];
@@ -106,8 +25,48 @@ const FindBands = () => {
   const [genreFilter, setGenreFilter] = useState('');
   const [locationFilter, setLocationFilter] = useState('All Locations');
   const [skillLevelFilter, setSkillLevelFilter] = useState('All Skill Levels');
-  const [bands, setBands] = useState(MOCK_BANDS);
-  const [filteredBands, setFilteredBands] = useState(MOCK_BANDS);
+  const [bands, setBands] = useState<Musician[]>([]);
+  const [filteredBands, setFilteredBands] = useState<Musician[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  // Fetch bands from Supabase
+  useEffect(() => {
+    const fetchBands = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_type', 'band');
+
+        if (error) {
+          throw error;
+        }
+
+        if (data && data.length > 0) {
+          console.log('Fetched bands:', data);
+          setBands(data as Musician[]);
+          setFilteredBands(data as Musician[]);
+        } else {
+          console.log('No bands found');
+          setBands([]);
+          setFilteredBands([]);
+        }
+      } catch (error) {
+        console.error('Error fetching bands:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load bands",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBands();
+  }, [toast]);
 
   // Apply filters when they change
   useEffect(() => {
@@ -116,15 +75,15 @@ const FindBands = () => {
     // Apply search query filter
     if (searchQuery) {
       filtered = filtered.filter(band => 
-        band.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        band.description.toLowerCase().includes(searchQuery.toLowerCase())
+        (band.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false) ||
+        (band.experience?.toLowerCase().includes(searchQuery.toLowerCase()) || false)
       );
     }
 
     // Apply genre filter
     if (genreFilter && genreFilter !== 'All Genres') {
       filtered = filtered.filter(band => 
-        band.genre.includes(genreFilter.toLowerCase())
+        band.genres?.includes(genreFilter)
       );
     }
 
@@ -138,7 +97,7 @@ const FindBands = () => {
     // Apply skill level filter
     if (skillLevelFilter && skillLevelFilter !== 'All Skill Levels') {
       filtered = filtered.filter(band => 
-        band.skillLevel === skillLevelFilter.toLowerCase()
+        band.experience?.toLowerCase().includes(skillLevelFilter.toLowerCase())
       );
     }
 
@@ -249,7 +208,12 @@ const FindBands = () => {
       </p>
 
       {/* Grid of Bands */}
-      {filteredBands.length > 0 ? (
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
+          <span>Loading bands...</span>
+        </div>
+      ) : filteredBands.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredBands.map(band => (
             <BandCard key={band.id} band={band} />

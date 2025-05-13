@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { loadUserGroups, inviteMusicianToGroup } from '@/services/groupService';
 import type { Group } from '@/types/group';
 import type { Musician } from '@/types/musician';
+import { useAuth } from '@/context/AuthContext';
 
 interface ExistingGroupsTabProps {
   musician: Musician | null;
@@ -19,20 +20,19 @@ const ExistingGroupsTab = ({ musician, onSuccess }: ExistingGroupsTabProps) => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingGroups, setIsLoadingGroups] = useState<boolean>(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchUserGroups();
-  }, []);
+  }, [user]);
 
   const fetchUserGroups = async () => {
+    if (!user) return;
+    
+    setIsLoadingGroups(true);
     try {
-      // Get the user from local storage
-      const userString = localStorage.getItem('auth-user');
-      if (!userString) return;
-      
-      const user = JSON.parse(userString);
-      
       const userGroups = await loadUserGroups(user.id);
       setGroups(userGroups);
       
@@ -47,11 +47,13 @@ const ExistingGroupsTab = ({ musician, onSuccess }: ExistingGroupsTabProps) => {
         description: "Failed to load your groups",
         variant: "destructive"
       });
+    } finally {
+      setIsLoadingGroups(false);
     }
   };
 
   const handleAddToGroup = async () => {
-    if (!musician || !selectedGroup) return;
+    if (!musician || !selectedGroup || !user) return;
     
     setIsLoading(true);
     try {
@@ -76,6 +78,18 @@ const ExistingGroupsTab = ({ musician, onSuccess }: ExistingGroupsTabProps) => {
       setIsLoading(false);
     }
   };
+
+  if (isLoadingGroups) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center py-4">
+            <p>Loading your groups...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (groups.length === 0) {
     return (
@@ -109,7 +123,7 @@ const ExistingGroupsTab = ({ musician, onSuccess }: ExistingGroupsTabProps) => {
       <DialogFooter className="mt-4">
         <Button
           onClick={handleAddToGroup}
-          disabled={!selectedGroup || isLoading}
+          disabled={!selectedGroup || isLoading || !user}
         >
           {isLoading ? "Adding..." : "Add to Group"}
         </Button>

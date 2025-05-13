@@ -20,6 +20,8 @@ import SignupForm from "./components/SignupForm";
 import MusicUpload from "./components/MusicUpload";
 import { AuthProvider } from "./context/AuthContext";
 import AuthRoute from "./components/AuthRoute";
+import Groups from "./pages/Groups";
+import GroupDetail from "./pages/GroupDetail";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +48,19 @@ const App = () => (
             {/* New profile routes */}
             <Route path="/musician/:id" element={<MusicianProfile />} />
             <Route path="/band/:id" element={<BandProfile />} />
+            
+            {/* Group routes */}
+            <Route path="/groups" element={
+              <AuthRoute>
+                <Groups />
+              </AuthRoute>
+            } />
+            
+            <Route path="/group/:id" element={
+              <AuthRoute>
+                <GroupDetail />
+              </AuthRoute>
+            } />
             
             <Route path="/upload-music" element={
               <AuthRoute>

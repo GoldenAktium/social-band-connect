@@ -73,3 +73,47 @@ export async function inviteMusicianToGroup(
     throw error;
   }
 }
+
+export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
+  try {
+    const { data, error } = await supabase
+      .from('group_members')
+      .select(`
+        *,
+        profiles:user_id (
+          id,
+          name,
+          avatar_url,
+          instrument
+        )
+      `)
+      .eq('group_id', groupId);
+    
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching group members:', error);
+    throw error;
+  }
+}
+
+export async function getGroupDetails(groupId: string): Promise<Group | null> {
+  try {
+    const { data, error } = await supabase
+      .from('groups')
+      .select('*')
+      .eq('id', groupId)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') return null; // No rows returned
+      throw error;
+    }
+    
+    return data as Group;
+  } catch (error) {
+    console.error('Error fetching group details:', error);
+    throw error;
+  }
+}

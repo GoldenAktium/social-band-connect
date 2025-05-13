@@ -1,40 +1,18 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { Group, GroupMember, GroupMessage } from '@/types/group';
+import type { Group, GroupMember } from '@/types/group';
 import type { Musician } from '@/types/musician';
 
 export async function loadUserGroups(userId: string): Promise<Group[]> {
   try {
-    // Get groups owned by the user
-    const { data: ownedGroups, error: ownedError } = await supabase
+    const { data, error } = await supabase
       .from('groups')
       .select('*')
       .eq('owner_id', userId);
     
-    if (ownedError) throw ownedError;
+    if (error) throw error;
     
-    // Get groups where the user is a member
-    const { data: memberGroups, error: memberError } = await supabase
-      .from('group_members')
-      .select('group_id, groups(*)')
-      .eq('user_id', userId)
-      .in('status', ['invited', 'active']);
-    
-    if (memberError) throw memberError;
-    
-    // Combine and deduplicate the results
-    const memberGroupsData = memberGroups
-      .filter(item => item.groups)
-      .map(item => item.groups as Group);
-    
-    const allGroups = [...(ownedGroups || []), ...memberGroupsData];
-    
-    // Remove duplicates
-    const uniqueGroups = allGroups.filter((group, index, self) => 
-      index === self.findIndex(g => g.id === group.id)
-    );
-    
-    return uniqueGroups as Group[] || [];
+    return data as Group[] || [];
   } catch (error) {
     console.error('Error loading groups:', error);
     throw error;
@@ -94,102 +72,4 @@ export async function inviteMusicianToGroup(
     console.error('Error inviting musician to group:', error);
     throw error;
   }
-}
-
-export async function getGroupDetails(groupId: string): Promise<Group> {
-  try {
-    const { data, error } = await supabase
-      .from('groups')
-      .select('*')
-      .eq('id', groupId)
-      .single();
-    
-    if (error) throw error;
-    
-    return data as Group;
-  } catch (error) {
-    console.error('Error getting group details:', error);
-    throw error;
-  }
-}
-
-export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
-  try {
-    const { data, error } = await supabase
-      .from('group_members')
-      .select('*, profiles:user_id(*)')
-      .eq('group_id', groupId);
-    
-    if (error) throw error;
-    
-    return data as unknown as GroupMember[] || [];
-  } catch (error) {
-    console.error('Error getting group members:', error);
-    throw error;
-  }
-}
-
-export async function sendGroupMessage(
-  groupId: string,
-  userId: string,
-  content: string
-): Promise<GroupMessage> {
-  try {
-    const { data, error } = await supabase
-      .from('group_messages')
-      .insert([
-        {
-          group_id: groupId,
-          user_id: userId,
-          content
-        }
-      ])
-      .select()
-      .single();
-    
-    if (error) throw error;
-    
-    return data as GroupMessage;
-  } catch (error) {
-    console.error('Error sending message:', error);
-    throw error;
-  }
-}
-
-export async function getGroupMessages(groupId: string): Promise<GroupMessage[]> {
-  try {
-    const { data, error } = await supabase
-      .from('group_messages')
-      .select('*, profiles:user_id(*)')
-      .eq('group_id', groupId)
-      .order('created_at', { ascending: true });
-    
-    if (error) throw error;
-    
-    return data as unknown as GroupMessage[] || [];
-  } catch (error) {
-    console.error('Error getting messages:', error);
-    throw error;
-  }
-}
-
-export async function subscribeToGroupMessages(
-  groupId: string,
-  callback: (message: GroupMessage) => void
-) {
-  return supabase
-    .channel(`group_messages:${groupId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'group_messages',
-        filter: `group_id=eq.${groupId}`
-      },
-      (payload) => {
-        callback(payload.new as GroupMessage);
-      }
-    )
-    .subscribe();
 }

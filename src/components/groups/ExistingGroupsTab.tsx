@@ -9,7 +9,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { loadUserGroups, inviteMusicianToGroup } from '@/services/groupService';
 import type { Group } from '@/types/group';
 import type { Musician } from '@/types/musician';
-import { useAuth } from '@/context/AuthContext';
 
 interface ExistingGroupsTabProps {
   musician: Musician | null;
@@ -21,17 +20,18 @@ const ExistingGroupsTab = ({ musician, onSuccess }: ExistingGroupsTabProps) => {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
-  const { user } = useAuth();
 
   useEffect(() => {
-    if (user) {
-      fetchUserGroups();
-    }
-  }, [user]);
+    fetchUserGroups();
+  }, []);
 
   const fetchUserGroups = async () => {
     try {
-      if (!user) return;
+      // Get the user from local storage
+      const userString = localStorage.getItem('auth-user');
+      if (!userString) return;
+      
+      const user = JSON.parse(userString);
       
       const userGroups = await loadUserGroups(user.id);
       setGroups(userGroups);

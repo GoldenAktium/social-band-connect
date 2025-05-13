@@ -18,6 +18,8 @@ import BandOnboarding from "./components/BandOnboarding";
 import LoginForm from "./components/LoginForm";
 import SignupForm from "./components/SignupForm";
 import MusicUpload from "./components/MusicUpload";
+import Groups from "./pages/Groups";
+import GroupChat from "./pages/GroupChat";
 import { AuthProvider } from "./context/AuthContext";
 import AuthRoute from "./components/AuthRoute";
 
@@ -43,7 +45,19 @@ const App = () => (
             <Route path="/find-musicians" element={<FindMusicians />} />
             <Route path="/find-music" element={<FindMusic />} />
             
-            {/* New profile routes */}
+            {/* Group routes */}
+            <Route path="/groups" element={
+              <AuthRoute>
+                <Groups />
+              </AuthRoute>
+            } />
+            <Route path="/group/:id" element={
+              <AuthRoute>
+                <GroupChat />
+              </AuthRoute>
+            } />
+            
+            {/* Profile routes */}
             <Route path="/musician/:id" element={<MusicianProfile />} />
             <Route path="/band/:id" element={<BandProfile />} />
             

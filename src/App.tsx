@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +21,7 @@ import { AuthProvider } from "./context/AuthContext";
 import AuthRoute from "./components/AuthRoute";
 import Groups from "./pages/Groups";
 import GroupDetail from "./pages/GroupDetail";
+import CreateGroup from "./pages/CreateGroup";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +53,12 @@ const App = () => (
             <Route path="/groups" element={
               <AuthRoute>
                 <Groups />
+              </AuthRoute>
+            } />
+            
+            <Route path="/create-group" element={
+              <AuthRoute>
+                <CreateGroup />
               </AuthRoute>
             } />
             

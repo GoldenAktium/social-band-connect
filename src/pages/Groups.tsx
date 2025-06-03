@@ -47,7 +47,14 @@ const Groups = () => {
       <main className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold tracking-tight">My Groups</h1>
-          <Button onClick={() => navigate("/dashboard")}>Back to Dashboard</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/dashboard")}>
+              Back to Dashboard
+            </Button>
+            <Button onClick={() => navigate("/create-group")}>
+              Create Group
+            </Button>
+          </div>
         </div>
         
         <Separator className="my-6" />
@@ -57,8 +64,8 @@ const Groups = () => {
         ) : groups.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground mb-4">You haven't created any groups yet.</p>
-            <Button onClick={() => navigate("/find-musicians")}>
-              Find Musicians to Create a Group
+            <Button onClick={() => navigate("/create-group")}>
+              Create Your First Group
             </Button>
           </div>
         ) : (

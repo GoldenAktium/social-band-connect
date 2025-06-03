@@ -76,22 +76,31 @@ export async function inviteMusicianToGroup(
 
 export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
   try {
-    const { data, error } = await supabase
+    // Use a simpler approach - get members and their profile data separately
+    const { data: members, error: membersError } = await supabase
       .from('group_members')
-      .select(`
-        *,
-        profiles!group_members_user_id_fkey (
-          id,
-          name,
-          avatar_url,
-          instrument
-        )
-      `)
+      .select('*')
       .eq('group_id', groupId);
     
-    if (error) throw error;
+    if (membersError) throw membersError;
+    if (!members || members.length === 0) return [];
+
+    // Get profile data for all member user_ids
+    const userIds = members.map(member => member.user_id);
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, name, avatar_url, instrument')
+      .in('id', userIds);
     
-    return data || [];
+    if (profilesError) throw profilesError;
+
+    // Combine the data
+    const result = members.map(member => ({
+      ...member,
+      profiles: profiles?.find(profile => profile.id === member.user_id) || null
+    }));
+
+    return result as GroupMember[];
   } catch (error) {
     console.error('Error fetching group members:', error);
     throw error;

@@ -119,15 +119,15 @@ const GroupDetail = () => {
                     <div key={member.id} className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <Avatar>
-                          <AvatarImage src={(member as any).profiles?.avatar_url} />
+                          <AvatarImage src={member.profiles?.avatar_url || undefined} />
                           <AvatarFallback>
-                            {(member as any).profiles?.name?.charAt(0) || '?'}
+                            {member.profiles?.name?.charAt(0) || '?'}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{(member as any).profiles?.name || 'Unknown User'}</p>
+                          <p className="font-medium">{member.profiles?.name || 'Unknown User'}</p>
                           <p className="text-sm text-muted-foreground">
-                            {(member as any).profiles?.instrument || 'No instrument'}
+                            {member.profiles?.instrument || 'No instrument'}
                           </p>
                         </div>
                       </div>

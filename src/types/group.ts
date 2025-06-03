@@ -10,8 +10,14 @@ export interface GroupMember {
   id: string;
   group_id: string;
   user_id: string;
-  status: 'invited' | 'active' | 'declined';
+  status: string; // Changed from union type to string to match database
   created_at: string;
+  profiles?: {
+    id: string;
+    name: string | null;
+    avatar_url: string | null;
+    instrument: string | null;
+  } | null;
 }
 
 export interface GroupMessage {

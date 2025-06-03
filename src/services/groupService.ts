@@ -80,7 +80,7 @@ export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
       .from('group_members')
       .select(`
         *,
-        profiles:user_id (
+        profiles!group_members_user_id_fkey (
           id,
           name,
           avatar_url,

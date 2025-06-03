@@ -19,19 +19,27 @@ const CreateGroup = () => {
   const navigate = useNavigate();
 
   const handleCreateGroup = async () => {
-    if (!groupName.trim() || !user) {
-      if (!user) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to create a group",
-          variant: "destructive"
-        });
-      }
+    if (!groupName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a group name",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create a group",
+        variant: "destructive"
+      });
       return;
     }
     
     setIsLoading(true);
     try {
+      console.log('Attempting to create group with user:', user);
       const groupData = await createGroup(groupName, user.id);
       
       toast({
@@ -43,9 +51,16 @@ const CreateGroup = () => {
       navigate(`/group/${groupData.id}`);
     } catch (error) {
       console.error('Error creating group:', error);
+      
+      // More detailed error handling
+      let errorMessage = "Failed to create group";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to create group",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -89,6 +104,11 @@ const CreateGroup = () => {
                   placeholder="Enter group name"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleCreateGroup();
+                    }
+                  }}
                 />
               </div>
               

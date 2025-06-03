@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { Group, GroupMember } from '@/types/group';
-import type { Musician } from '@/types/musician';
 
 export async function loadUserGroups(userId: string): Promise<Group[]> {
   try {
@@ -21,17 +20,26 @@ export async function loadUserGroups(userId: string): Promise<Group[]> {
 
 export async function createGroup(name: string, ownerId: string): Promise<Group> {
   try {
+    console.log('Creating group with name:', name, 'owner:', ownerId);
+    
     const { data, error } = await supabase
       .from('groups')
       .insert([
-        { name, owner_id: ownerId }
+        { name: name.trim(), owner_id: ownerId }
       ])
       .select()
       .single();
     
-    if (error) throw error;
-    if (!data) throw new Error('No data returned from group creation');
+    if (error) {
+      console.error('Supabase error creating group:', error);
+      throw error;
+    }
     
+    if (!data) {
+      throw new Error('No data returned from group creation');
+    }
+    
+    console.log('Group created successfully:', data);
     return data as Group;
   } catch (error) {
     console.error('Error creating group:', error);
@@ -76,7 +84,7 @@ export async function inviteMusicianToGroup(
 
 export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
   try {
-    // Use a simpler approach - get members and their profile data separately
+    // Get members and their profile data separately to avoid complex joins
     const { data: members, error: membersError } = await supabase
       .from('group_members')
       .select('*')

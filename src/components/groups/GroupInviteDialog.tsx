@@ -69,7 +69,10 @@ const GroupInviteDialog = ({ open, onOpenChange, musician }: GroupInviteDialogPr
     
     setIsLoading(true);
     try {
-      await inviteMusicianToGroup(selectedGroup, musician.id);
+      // Get current user's name for the notification
+      const inviterName = user.user_metadata?.name || user.email || 'Someone';
+      
+      await inviteMusicianToGroup(selectedGroup, musician.id, inviterName);
       
       const selectedGroupData = groups.find(group => group.id === selectedGroup);
       

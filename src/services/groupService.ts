@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Group, GroupMember } from '@/types/group';
+import { createGroupInviteNotification } from './notificationService';
 
 export async function loadUserGroups(userId: string): Promise<Group[]> {
   try {
@@ -49,7 +49,8 @@ export async function createGroup(name: string, ownerId: string): Promise<Group>
 
 export async function inviteMusicianToGroup(
   groupId: string,
-  musicianId: string
+  musicianId: string,
+  inviterName: string = 'Someone'
 ): Promise<void> {
   try {
     // First check if user is already in the group
@@ -65,6 +66,15 @@ export async function inviteMusicianToGroup(
     // If already a member, don't add again
     if (existingMember) return;
     
+    // Get group details for the notification
+    const { data: groupData, error: groupError } = await supabase
+      .from('groups')
+      .select('name')
+      .eq('id', groupId)
+      .single();
+    
+    if (groupError) throw groupError;
+
     const { error: memberError } = await supabase
       .from('group_members')
       .insert([
@@ -76,8 +86,48 @@ export async function inviteMusicianToGroup(
       ]);
     
     if (memberError) throw memberError;
+
+    // Create notification for the invited user
+    await createGroupInviteNotification(
+      musicianId,
+      groupId,
+      groupData.name,
+      inviterName
+    );
   } catch (error) {
     console.error('Error inviting musician to group:', error);
+    throw error;
+  }
+}
+
+export async function acceptGroupInvite(groupId: string, userId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('group_members')
+      .update({ status: 'accepted' })
+      .eq('group_id', groupId)
+      .eq('user_id', userId)
+      .eq('status', 'invited');
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error accepting group invite:', error);
+    throw error;
+  }
+}
+
+export async function declineGroupInvite(groupId: string, userId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('group_members')
+      .delete()
+      .eq('group_id', groupId)
+      .eq('user_id', userId)
+      .eq('status', 'invited');
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error declining group invite:', error);
     throw error;
   }
 }

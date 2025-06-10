@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { 
   Dialog,
@@ -68,10 +69,7 @@ const GroupInviteDialog = ({ open, onOpenChange, musician }: GroupInviteDialogPr
     
     setIsLoading(true);
     try {
-      // Get current user's name for the notification
-      const inviterName = user.name || user.email || 'Someone';
-      
-      await inviteMusicianToGroup(selectedGroup, musician.id, inviterName);
+      await inviteMusicianToGroup(selectedGroup, musician.id);
       
       const selectedGroupData = groups.find(group => group.id === selectedGroup);
       

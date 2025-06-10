@@ -62,6 +62,8 @@ export const Dashboard = () => {
       navigate('/find-musicians');
     } else if (tab === 'bands') {
       navigate('/find-bands');
+    } else if (tab === 'groups') {
+      navigate('/groups');
     } else if (tab === 'messages') {
       // For now, we'll just switch the tab without navigating
       setSelectedTab('messages');
@@ -126,6 +128,19 @@ export const Dashboard = () => {
           >
             <Users className="h-5 w-5 mr-3" />
             My Bands
+          </button>
+          
+          <button 
+            onClick={() => handleTabClick('groups')}
+            className={cn(
+              "flex items-center w-full px-3 py-2 rounded-md transition-colors",
+              selectedTab === 'groups' 
+                ? "bg-music-100 text-music-700" 
+                : "hover:bg-muted text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Users className="h-5 w-5 mr-3" />
+            Groups
           </button>
           
           <button 
@@ -223,6 +238,19 @@ export const Dashboard = () => {
         >
           <Users className="h-5 w-5" />
           <span className="text-xs mt-1">Bands</span>
+        </button>
+        
+        <button 
+          onClick={() => handleTabClick('groups')}
+          className={cn(
+            "flex flex-col items-center p-2 rounded-md transition-colors",
+            selectedTab === 'groups' 
+              ? "text-music-600" 
+              : "text-muted-foreground"
+          )}
+        >
+          <Users className="h-5 w-5" />
+          <span className="text-xs mt-1">Groups</span>
         </button>
         
         <button 

@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Group, GroupMember } from '@/types/group';
+import { createNotification } from './notificationService';
 
 export async function loadUserGroups(userId: string): Promise<Group[]> {
   try {
@@ -76,6 +76,27 @@ export async function inviteMusicianToGroup(
       ]);
     
     if (memberError) throw memberError;
+
+    // Get group details to include in notification
+    const { data: group, error: groupError } = await supabase
+      .from('groups')
+      .select('name')
+      .eq('id', groupId)
+      .single();
+
+    if (groupError) throw groupError;
+
+    // Create notification for the invited user
+    await createNotification({
+      user_id: musicianId,
+      type: 'group_invite',
+      title: 'Group Invitation',
+      message: `You've been invited to join the group "${group.name}"`,
+      data: {
+        group_id: groupId,
+        group_name: group.name
+      }
+    });
   } catch (error) {
     console.error('Error inviting musician to group:', error);
     throw error;
@@ -131,6 +152,36 @@ export async function getGroupDetails(groupId: string): Promise<Group | null> {
     return data as Group;
   } catch (error) {
     console.error('Error fetching group details:', error);
+    throw error;
+  }
+}
+
+export async function acceptGroupInvite(groupId: string, userId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('group_members')
+      .update({ status: 'accepted' })
+      .eq('group_id', groupId)
+      .eq('user_id', userId);
+    
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error accepting group invite:', error);
+    throw error;
+  }
+}
+
+export async function declineGroupInvite(groupId: string, userId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('group_members')
+      .delete()
+      .eq('group_id', groupId)
+      .eq('user_id', userId);
+    
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error declining group invite:', error);
     throw error;
   }
 }
